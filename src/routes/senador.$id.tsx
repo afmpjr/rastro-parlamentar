@@ -5,6 +5,7 @@ import { Landmark, Users, Vote, FileText } from "lucide-react";
 import { detalheSenador } from "@/lib/fontes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { ExploradorDespesas } from "@/components/graficos/Despesas";
+import { PainelVotos } from "@/components/graficos/Votos";
 import { GradeAtividade } from "@/components/graficos/Atividade";
 import { Desempenho, contar } from "@/components/graficos/Desempenho";
 
@@ -54,7 +55,7 @@ function Sen() {
 
       <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" />
 
-      <GradeAtividade datas={data.votacoes.map((v) => v.data)} titulo="Atividade em votações nominais" legenda="votações" />
+      <GradeAtividade itens={data.votacoes.map((v) => ({ data: v.data, tipo: SIGLAS[v.voto] ?? (v.voto || "Sem registro"), titulo: v.materia, detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — ") }))} titulo="Atividade em votações nominais" legenda="votações" />
 
       <Desempenho
         indicadores={[
@@ -66,6 +67,8 @@ function Sen() {
         barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
         pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => SIGLAS[v.voto] ?? (v.voto || "Sem registro"))) }}
       />
+
+      <PainelVotos votos={data.votacoes.map((v) => ({ data: v.data, voto: SIGLAS[v.voto] ?? (v.voto || "Sem registro"), titulo: v.materia, descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "), aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null }))} />
 
       <section className="mt-12">
         <h2 className={h2}><Landmark className="h-6 w-6" aria-hidden />Mandatos</h2>

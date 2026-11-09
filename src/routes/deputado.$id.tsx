@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { foto } from "@/lib/foto";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
-import { detalheDeputado } from "@/lib/fontes.functions";
+import { detalheDeputado, votosDeputado } from "@/lib/fontes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { ExploradorDespesas } from "@/components/graficos/Despesas";
 import { GradeAtividade } from "@/components/graficos/Atividade";
+import { PainelVotos } from "@/components/graficos/Votos";
+import { DetalheProposicoes } from "@/components/graficos/Proposicoes";
 import { Desempenho, contar } from "@/components/graficos/Desempenho";
 
 const q = (id: string) => queryOptions({ queryKey: ["dep", id], queryFn: () => detalheDeputado({ data: { id } }), staleTime: 3600_000 });
@@ -44,18 +47,22 @@ function Dep() {
 
       <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAP)" />
 
-      <GradeAtividade datas={data.eventos.map((e) => e.data)} titulo="Agenda e presença em eventos" legenda="eventos" />
+      <GradeAtividade itens={data.eventos.map((e) => ({ data: e.data, tipo: e.tipo, titulo: `${e.hora} · ${e.orgao || e.tipo}${e.situacao ? ` (${e.situacao})` : ""}`, detalhe: [e.descricao, e.local].filter(Boolean).join(" — "), url: `https://www.camara.leg.br/evento-legislativo/${e.id}` }))} titulo="Agenda e presença em eventos" legenda="eventos" />
 
       <Desempenho
         indicadores={[
-          { rotulo: "Eventos em 12 meses", valor: String(data.eventos.length), icone: "agenda" },
-          { rotulo: "Sessões em plenário", valor: String(sessoes), icone: "votos" },
-          { rotulo: "Proposições (últimas 100)", valor: String(data.proposicoes.length), icone: "propostas" },
-          { rotulo: "Tipos de proposição", valor: String(new Set(data.proposicoes.map((x) => x.tipo)).size), icone: "tendencia" },
+          { rotulo: "Eventos em 12 meses", valor: String(data.eventos.length), icone: "agenda", detalhe: (<ul className="mt-4 max-h-96 divide-y divide-border overflow-y-auto border border-foreground p-4">{[...data.eventos].reverse().map((e) => (
+            <li key={e.id} className="py-2 text-sm"><a className="link-evidence font-semibold" href={`https://www.camara.leg.br/evento-legislativo/${e.id}`} target="_blank" rel="noreferrer">{e.data.split("-").reverse().join("/")} {e.hora} · {e.tipo}</a> <span className="text-muted-foreground">{e.orgao} {e.situacao}</span><p>{e.descricao}</p></li>))}</ul>) },
+          { rotulo: "Sessões em plenário", valor: String(sessoes), icone: "votos", detalhe: (<ul className="mt-4 max-h-96 divide-y divide-border overflow-y-auto border border-foreground p-4">{data.eventos.filter((e) => /sess/i.test(e.tipo)).reverse().map((e) => (
+            <li key={e.id} className="py-2 text-sm"><a className="link-evidence font-semibold" href={`https://www.camara.leg.br/evento-legislativo/${e.id}`} target="_blank" rel="noreferrer">{e.data.split("-").reverse().join("/")} {e.hora} · {e.tipo}</a> <span className="text-muted-foreground">{e.orgao} {e.situacao}</span><p>{e.descricao}</p></li>))}</ul>) },
+          { rotulo: "Proposições (últimas 100)", valor: String(data.proposicoes.length), icone: "propostas", detalhe: <DetalheProposicoes props={data.proposicoes} /> },
+          { rotulo: "Tipos de proposição", valor: String(new Set(data.proposicoes.map((x) => x.tipo)).size), icone: "tendencia", detalhe: <DetalheProposicoes props={data.proposicoes} porTipo /> },
         ]}
         barras={{ titulo: "Proposições por ano", dados: anos }}
         pizza={{ titulo: "Eventos por tipo", dados: contar(data.eventos.map((e) => e.tipo)) }}
       />
+
+      <VotosDep id={id} />
 
       <section className="mt-12">
         <h2 className="flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"><FileText className="h-6 w-6" aria-hidden />Proposições de autoria recentes</h2>
@@ -67,5 +74,19 @@ function Dep() {
       </section>
       <Fontes fontes={data.fontes} />
     </article>
+  );
+}
+
+function VotosDep({ id }: { id: string }) {
+  const atual = new Date().getFullYear();
+  const [ano, setAno] = useState(atual);
+  const r = useQuery({ queryKey: ["votos", id, ano], queryFn: () => votosDeputado({ data: { id, ano } }), staleTime: 3600_000 });
+  return (
+    <>
+      <PainelVotos carregando={r.isLoading} erro={r.isError ? "Não foi possível ler o arquivo de votações agora." : undefined}
+        votos={(r.data?.votos ?? []).map((v) => ({ data: v.data, voto: v.voto, titulo: `${v.orgao} · ${v.proposicao || "Votação"}`, descricao: v.descricao, aprovada: v.aprovada, url: `https://dadosabertos.camara.leg.br/api/v2/votacoes/${v.idVotacao}` }))}
+        extra={<label className="text-xs">Ano<br /><select className="border border-border bg-background px-2 py-1 text-sm" value={ano} onChange={(e) => setAno(Number(e.target.value))}>{[0, 1, 2, 3].map((k) => <option key={k} value={atual - k}>{atual - k}</option>)}</select></label>} />
+      {r.data && <Fontes fontes={r.data.fontes} />}
+    </>
   );
 }

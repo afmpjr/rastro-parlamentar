@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { parlamentaresQuery } from "@/lib/parlamentares-query";
+import { Plenario } from "@/components/Plenario";
 import { Fontes, Selo } from "@/components/Fontes";
 
 export const Route = createFileRoute("/")({
@@ -10,13 +11,14 @@ export const Route = createFileRoute("/")({
     { name: "description", content: "Acompanhe deputados e senadores com dados oficiais da Câmara e do Senado, sempre com a fonte." },
     { property: "og:title", content: "Plenário Aberto — Monitor de parlamentares federais" },
     { property: "og:description", content: "Deputados e senadores com dados oficiais e evidência rastreável." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(parlamentaresQuery),
   component: Index,
 });
 
 function Index() {
-  const { data } = useSuspenseQuery(parlamentaresQuery);
+  const { data } = useSuspenseQuery({ ...parlamentaresQuery, initialData: Route.useLoaderData() });
   const [q, setQ] = useState("");
   const nav = useNavigate();
   const dep = data.lista.filter((p) => p.casa === "camara").length;
@@ -38,6 +40,7 @@ function Index() {
           </div>
         ))}
       </section>
+      <Plenario lista={data.lista} />
       {data.erros.length > 0 && <p className="mt-4 text-destructive">Aviso: {data.erros.join(", ")}.</p>}
       <section className="mt-12 grid gap-8 md:grid-cols-2">
         <div><h2 className="text-2xl font-bold">Evidência antes de inferência</h2><p className="mt-2 text-muted-foreground">Toda informação mostra de onde veio e quando foi coletada. Um gasto alto ou um fornecedor recorrente não significa irregularidade.</p></div>

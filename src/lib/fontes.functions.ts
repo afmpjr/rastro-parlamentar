@@ -49,10 +49,10 @@ export const detalheDeputado = createServerFn({ method: "GET" })
     const det = await getJson(uDet);
     const { despesasDoArquivo, urlArquivoCeap } = await import("./ceap.server");
     const eventos = async () => {
-      const out: { data: string; tipo: string }[] = [];
+      const out: { id: number; data: string; hora: string; tipo: string; descricao: string; local: string; situacao: string; orgao: string }[] = [];
       for (let pg = 1; pg <= 8; pg++) {
         const r = await getJson(`${uEv}&pagina=${pg}`);
-        for (const e of r.dados) out.push({ data: String(e.dataHoraInicio ?? "").slice(0, 10), tipo: e.descricaoTipo ?? "" });
+        for (const e of r.dados) out.push({ id: e.id, data: String(e.dataHoraInicio ?? "").slice(0, 10), hora: String(e.dataHoraInicio ?? "").slice(11, 16), tipo: e.descricaoTipo ?? "", descricao: String(e.descricao ?? "").replace(/\s+/g, " ").trim(), local: e.localCamara?.nome ?? "", situacao: e.situacao ?? "", orgao: e.orgaos?.[0]?.sigla ?? "" });
         if (!r.links?.some((l: any) => l.rel === "next")) break;
       }
       return out;
@@ -155,4 +155,40 @@ export const detalheSenador = createServerFn({ method: "GET" })
       mandatos,
       fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut), fonte(`Senado — despesas CEAPS ${anoAtual}`, `${CEAPS}/${anoAtual}`), fonte(`Senado — despesas CEAPS ${anoAtual - 1}`, `${CEAPS}/${anoAtual - 1}`)],
     };
+  });
+
+export const votosDeputado = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: string; ano: number }) => {
+    if (!/^\d{1,9}$/.test(d.id) || !Number.isInteger(d.ano) || d.ano < 2019 || d.ano > 2100) throw new Error("parâmetros inválidos");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const { votosDoDeputado, urlVotos, urlVotacoes } = await import("./votos.server");
+    const votos = await votosDoDeputado(data.ano, data.id);
+    return { votos, fontes: [fonte(`Câmara — votos ${data.ano} (arquivo)`, urlVotos(data.ano)), fonte(`Câmara — votações ${data.ano} (arquivo)`, urlVotacoes(data.ano))] };
+  });
+
+const cacheSit = new Map<number, { t: number; v: any }>();
+export const situacaoProposicoes = createServerFn({ method: "GET" })
+  .inputValidator((d: { ids: number[] }) => {
+    if (!Array.isArray(d.ids) || d.ids.length > 100 || d.ids.some((i) => !Number.isInteger(i) || i <= 0)) throw new Error("ids inválidos");
+    return d;
+  })
+  .handler(async ({ data }) => {
+    const out: Record<number, { descricaoTipo: string; situacao: string; tramitacao: string; orgao: string; dataHora: string; inteiroTeor: string | null }> = {};
+    const fila = [...data.ids];
+    const worker = async () => {
+      for (let id = fila.shift(); id; id = fila.shift()) {
+        const c = cacheSit.get(id);
+        if (c && Date.now() - c.t < 3600_000) { out[id] = c.v; continue; }
+        try {
+          const d = (await getJson(`${CAMARA}/proposicoes/${id}`)).dados;
+          const s = d.statusProposicao ?? {};
+          const v = { descricaoTipo: d.descricaoTipo ?? d.siglaTipo, situacao: s.descricaoSituacao ?? "", tramitacao: s.descricaoTramitacao ?? "", orgao: s.siglaOrgao ?? "", dataHora: s.dataHora ?? "", inteiroTeor: d.urlInteiroTeor ?? null };
+          cacheSit.set(id, { t: Date.now(), v }); out[id] = v;
+        } catch (e) { console.error("situacao", id, e); }
+      }
+    };
+    await Promise.all(Array.from({ length: 8 }, worker));
+    return { situacoes: out, fonte: fonte("Câmara — proposições (detalhe)", `${CAMARA}/proposicoes/{id}`) };
   });
