@@ -124,7 +124,12 @@ function Comparar() {
                 {vots.slice(0, 200).map((v) => (
                   <tr key={v.id} className="border-t border-border align-top">
                     <td className="py-2 pr-3 whitespace-nowrap">{v.data.split("-").reverse().join("/")}</td>
-                    <td className="pr-3">{v.idProp ? <Link to="/proposicao/$casa/$id" params={{ casa: s.casa, id: v.idProp }} className="underline">{v.identificacao || "Ver proposição"}</Link> : v.identificacao} <span className="line-clamp-2">{v.descricao}</span></td>
+                    <td className="py-2 pr-3">
+                      {v.idProp ? <Link to="/proposicao/$casa/$id" params={{ casa: s.casa, id: v.idProp }} className="font-bold underline">{v.identificacao || "Ver proposição"}</Link> : <span className="font-bold">{v.identificacao}</span>}
+                      {v.ementa && <p className="line-clamp-2">{v.ementa}</p>}
+                      {v.decidia && <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">Em votação: {v.decidia}</p>}
+                      <p className="text-xs text-muted-foreground">{v.descricao}</p>
+                    </td>
                     {v.votos.map((x, i) => <td key={i} className={`pr-3 ${corVoto(x)}`}>{x || "—"}</td>)}
                   </tr>
                 ))}

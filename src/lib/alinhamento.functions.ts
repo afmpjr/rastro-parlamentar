@@ -4,7 +4,7 @@ import type { Fonte } from "./fontes.functions";
 const fonte = (orgao: string, url: string): Fonte => ({ orgao, url, coletadoEm: new Date().toISOString() });
 const valAno = (a: unknown) => { const n = Number(a); if (!Number.isInteger(n) || n < 2019 || n > 2100) throw new Error("ano inválido"); return n; };
 const valCasa = (c: unknown) => (c === "senado" ? "senado" : "camara") as "camara" | "senado";
-const nomeFonte = (casa: string, u: string) => `${casa === "camara" ? "Câmara" : "Senado"} — ${u.includes("votacoesVotos") ? "votos (arquivo)" : u.includes("votacoes-") ? "votações (arquivo)" : "votações"}`;
+const nomeFonte = (casa: string, u: string) => `${casa === "camara" ? "Câmara" : "Senado"} — ${u.includes("votacoesVotos") ? "votos (arquivo)" : u.includes("votacoesProposicoes") ? "projetos de cada votação (arquivo)" : u.includes("votacoes-") ? "votações (arquivo)" : "votações"}`;
 
 export const compararParlamentares = createServerFn({ method: "GET" })
   .inputValidator((d: { casa: string; ano: number; ids: string[] }) => {
@@ -13,7 +13,7 @@ export const compararParlamentares = createServerFn({ method: "GET" })
     return { casa: valCasa(d.casa), ano: valAno(d.ano), ids };
   })
   .handler(async ({ data }) => {
-    const { base, posicao } = await import("./alinhamento.server");
+    const { base, posicao, oQueSeDecidia } = await import("./alinhamento.server");
     const b = await base(data.casa, data.ano);
     const perfis = data.ids.map((id) => {
       const p = b.parl.get(id);
@@ -41,7 +41,7 @@ export const compararParlamentares = createServerFn({ method: "GET" })
       const m = b.votos.get(v.id)!; const vs = data.ids.map((id) => m.get(id)?.[0] ?? "");
       if (vs.every((x) => !x)) return [];
       const ps = vs.map(posicao).filter(Boolean);
-      return [{ id: v.id, data: v.data, descricao: v.descricao, identificacao: v.identificacao, idProp: v.idProp, aprovada: v.aprovada, votos: vs, diverge: new Set(ps).size > 1 }];
+      return [{ id: v.id, data: v.data, descricao: v.descricao, identificacao: v.identificacao, ementa: v.ementa, decidia: oQueSeDecidia(v.descricao), idProp: v.idProp, aprovada: v.aprovada, votos: vs, diverge: new Set(ps).size > 1 }];
     });
     return { perfis, pares, votacoes, fontes: b.fontes.map((u) => fonte(nomeFonte(data.casa, u), u)) };
   });

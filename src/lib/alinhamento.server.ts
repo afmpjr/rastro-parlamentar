@@ -3,6 +3,7 @@ import { urlVotos, urlVotacoes } from "./votos.server";
 
 const CAMARA = "https://dadosabertos.camara.leg.br/api/v2";
 const SENADO = "https://legis.senado.leg.br/dadosabertos";
+export const urlVotProp = (ano: number) => `https://dadosabertos.camara.leg.br/arquivos/votacoesProposicoes/csv/votacoesProposicoes-${ano}.csv`;
 export type Casa = "camara" | "senado";
 export type Vt = { id: string; data: string; descricao: string; identificacao: string; idProp: string; ementa: string; aprovada: boolean | null; sim: number; nao: number };
 export type Base = { votacoes: Map<string, Vt>; votos: Map<string, Map<string, [string, string]>>; parl: Map<string, { nome: string; partido: string; uf: string }>; fontes: string[] };
@@ -41,7 +42,17 @@ async function camara(ano: number): Promise<Base> {
     parl.set(f[4]!, { nome: f[6]!, partido: f[7]!, uf: f[9]! });
   }
   for (const k of [...votacoes.keys()]) if (!votos.has(k)) votacoes.delete(k);
-  return { votacoes, votos, parl, fontes: [urlVotacoes(ano), urlVotos(ano)] };
+  try {
+    const PRI = (t: string) => (/^(PEC|PLP|PL|MPV|PLV|PDL|PRC)$/.test(t) ? 0 : 1);
+    const melhor = new Map<string, number>();
+    for await (const l of linhas(urlVotProp(ano))) {
+      const f = campos(l); if (f.length < 12) continue;
+      const v = votacoes.get(f[0]!); if (!v) continue;
+      const pr = PRI(f[9]!); if ((melhor.get(f[0]!) ?? 9) <= pr) continue;
+      melhor.set(f[0]!, pr); v.idProp = f[4]!; v.identificacao = f[6]!; v.ementa = f[7]!;
+    }
+  } catch { /* opcional: sem o arquivo, ficam só as descrições */ }
+  return { votacoes, votos, parl, fontes: [urlVotacoes(ano), urlVotos(ano), urlVotProp(ano)] };
 }
 
 async function senado(ano: number): Promise<Base> {
@@ -76,3 +87,17 @@ export async function ementaCamara(id: string) {
   try { const r = await fetch(`${CAMARA}/proposicoes/${id}`, { headers: { accept: "application/json" } }); const d = (await r.json()).dados; const e = `${d.siglaTipo} ${d.numero}/${d.ano}|${d.ementa ?? ""}`; ementas.set(id, e); return e; } catch { return ""; }
 }
 export const posicao = (v: string | undefined) => (v === "Sim" ? "Sim" : v === "Não" ? "Não" : null);
+
+// Explica em linguagem simples o que estava sendo decidido, a partir da descrição oficial.
+export function oQueSeDecidia(d: string) {
+  const t = d.toLowerCase();
+  if (/urg[êe]ncia/.test(t)) return "Acelerar a tramitação (pedido de urgência)";
+  if (/reda[çc][ãa]o final/.test(t)) return "Texto final do projeto";
+  if (/destaque|emenda aglutinativa|emenda/.test(t)) return "Mudança em parte do texto (emenda ou destaque)";
+  if (/substitutivo/.test(t)) return "Versão alternativa do texto (substitutivo)";
+  if (/recurso/.test(t)) return "Recurso contra decisão de comissão";
+  if (/retirada de pauta|adiamento|encerramento da discuss|requerimento/.test(t)) return "Procedimento: pauta, adiamento ou andamento da sessão";
+  if (/parecer/.test(t)) return "Parecer do relator";
+  if (/projeto|proposta|medida provis|pec|texto/.test(t)) return "O projeto em si (mérito)";
+  return "";
+}
