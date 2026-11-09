@@ -25,7 +25,7 @@ export function DetalheProposicoes({ props, porTipo }: { props: Prop[]; porTipo?
   return (
     <div className="mt-4 border border-foreground p-4">
       {q.isLoading ? <p className="text-sm text-muted-foreground">Consultando a situação de cada proposição na Câmara…</p> : (
-        <p className="text-sm"><b>{nAprov}</b> aprovadas ou transformadas em norma · <b>{nArq}</b> arquivadas/rejeitadas/retiradas · <b>{props.length - nAprov - nArq}</b> em tramitação ou sem situação <Selo tipo="calculo" /></p>
+        <p className="text-sm"><b>{nAprov}</b> aprovadas ou transformadas em norma · <b>{nArq}</b> arquivadas/rejeitadas/retiradas · <b>{props.length - nAprov - nArq}</b> em tramitação ou sem situação <Selo tipo="calculo" explica="Consultamos a situação de cada proposição na Câmara e separamos por palavra-chave do texto oficial: aprovadas ou transformadas em norma, arquivadas/rejeitadas/retiradas e as demais, que ficam em tramitação ou sem situação informada." /></p>
       )}
       {porTipo ? (
         <table className="mt-3 w-full text-sm"><thead><tr className="label-caps text-left"><th>Sigla</th><th>Tipo</th><th className="text-right">Qtd.</th><th className="text-right">Aprovadas</th></tr></thead>

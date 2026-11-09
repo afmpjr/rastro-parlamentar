@@ -36,7 +36,7 @@ function Index() {
         {[["Deputados em exercício", dep], ["Senadores em exercício", sen], ["Partidos representados", partidos]].map(([l, v]) => (
           <div key={l as string} className="border-foreground py-6 md:border-r md:px-6 md:last:border-r-0">
             <div className="font-display text-5xl font-bold">{v}</div>
-            <div className="mt-1 flex items-center gap-2 text-sm">{l} <Selo tipo={l === "Partidos representados" ? "calculo" : "oficial"} url={l === "Deputados em exercício" ? data.fontes[0]?.url : data.fontes[1]?.url} /></div>
+            <div className="mt-1 flex items-center gap-2 text-sm">{l} <Selo tipo={l === "Partidos representados" ? "calculo" : "oficial"} url={l === "Deputados em exercício" ? data.fontes[0]?.url : data.fontes[1]?.url} explica="Contamos quantos partidos diferentes aparecem entre todos os parlamentares em exercício. A fonte publica a lista com o partido de cada um; a contagem de partidos é feita por nós." /></div>
           </div>
         ))}
       </section>

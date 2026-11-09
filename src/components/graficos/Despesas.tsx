@@ -91,7 +91,7 @@ export function ExploradorDespesas({ despesas, titulo }: { despesas: Desp[]; tit
             <button type="button" className="link-evidence" onClick={() => setCat(null)}>limpar</button>
           </p>
         )}
-        <p className="label-caps mt-4">{filtradas.length} notas · total {brl(total)} <Selo tipo="calculo" /></p>
+        <p className="label-caps mt-4">{filtradas.length} notas · total {brl(total)} <Selo tipo="calculo" explica="Somamos o valor reembolsado de cada nota do arquivo oficial que passa pelos filtros escolhidos nesta tela (ano, mês ou categoria). A fonte publica as notas uma a uma, não o total." /></p>
         <div className="mt-2 h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={serie} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
@@ -106,7 +106,7 @@ export function ExploradorDespesas({ despesas, titulo }: { despesas: Desp[]; tit
         </div>
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           <div>
-            <p className="label-caps">Por categoria · clique para filtrar <Selo tipo="calculo" /></p>
+            <p className="label-caps">Por categoria · clique para filtrar <Selo tipo="calculo" explica="Agrupamos as notas pelo tipo de despesa informado na fonte e somamos os valores de cada grupo. A barra e o percentual comparam cada categoria com a maior delas." /></p>
             <ul className="mt-3 space-y-1">{porCat.map(([t, v]) => {
               const Icone = iconeCategoria(t);
               return (
@@ -122,7 +122,7 @@ export function ExploradorDespesas({ despesas, titulo }: { despesas: Desp[]; tit
             })}</ul>
           </div>
           <div>
-            <p className="label-caps">Principais fornecedores <Selo tipo="calculo" /></p>
+            <p className="label-caps">Principais fornecedores <Selo tipo="calculo" explica="Somamos o que foi pago a cada fornecedor (nome e CNPJ/CPF) dentro do filtro atual e mostramos os 10 maiores valores." /></p>
             <ol className="mt-3 space-y-1 text-sm">{porForn.map(([f, v]) => <li key={f} className="flex justify-between gap-4 border-b border-border py-1"><span>{f}</span><span className="whitespace-nowrap font-medium">{brl(v)}</span></li>)}</ol>
             <p className="mt-2 text-xs text-muted-foreground">Fornecedor recorrente não indica irregularidade.</p>
           </div>

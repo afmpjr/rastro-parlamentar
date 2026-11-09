@@ -63,7 +63,7 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
           {todosTipos.map(([t, n]) => <button key={t} className={btn(tipos.includes(t))} onClick={() => setTipos((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]))}>{t} ({n})</button>)}
         </div>
       )}
-      <p className="label-caps mt-4">{total} {legenda} em {ativos} dias no período <Selo tipo="calculo" /></p>
+      <p className="label-caps mt-4">{total} {legenda} em {ativos} dias no período <Selo tipo="calculo" explica="Contamos os registros oficiais do tipo escolhido no período selecionado e em quantos dias eles aparecem. A fonte publica cada registro; a soma é feita por nós." /></p>
       <div className="mt-3 flex gap-1">
         <div className="flex w-8 shrink-0 flex-col pt-5 text-[10px] text-muted-foreground" style={{ gap: 3 }}>
           {DIAS.map((d, i) => <span key={i} className="flex flex-1 items-center">{i % 2 ? d : ""}</span>)}

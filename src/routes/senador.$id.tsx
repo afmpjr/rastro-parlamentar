@@ -66,6 +66,8 @@ function Sen() {
         ]}
         barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
         pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => SIGLAS[v.voto] ?? (v.voto || "Sem registro"))) }}
+        explicaBarras="Contamos as matérias de autoria do senador pelo ano de apresentação, a partir da lista oficial de matérias de autoria."
+        explicaPizza="Contamos os votos registrados em plenário por tipo de voto e mostramos a fatia de cada tipo no total de votações."
       />
 
       <PainelVotos votos={data.votacoes.map((v) => ({ data: v.data, voto: SIGLAS[v.voto] ?? (v.voto || "Sem registro"), titulo: v.materia, descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "), aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null }))} />

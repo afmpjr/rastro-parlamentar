@@ -60,6 +60,8 @@ function Dep() {
         ]}
         barras={{ titulo: "Proposições por ano", dados: anos }}
         pizza={{ titulo: "Eventos por tipo", dados: contar(data.eventos.map((e) => e.tipo)) }}
+        explicaBarras="Contamos as proposições de autoria do deputado pelo ano de apresentação, a partir da lista oficial de proposições."
+        explicaPizza="Contamos os eventos da agenda oficial dos últimos 12 meses por tipo de evento e mostramos a fatia de cada tipo no total."
       />
 
       <VotosDep id={id} />

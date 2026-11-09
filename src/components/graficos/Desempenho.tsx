@@ -15,10 +15,12 @@ export function contar(itens: string[]) {
   return [...m.entries()].sort((a, b) => b[1] - a[1]).map(([nome, n]) => ({ nome, n }));
 }
 
-export function Desempenho({ indicadores, barras, pizza }: {
+export function Desempenho({ indicadores, barras, pizza, explicaBarras, explicaPizza }: {
   indicadores: Indicador[];
   barras: { titulo: string; dados: { nome: string; n: number }[] };
   pizza: { titulo: string; dados: { nome: string; n: number }[] };
+  explicaBarras?: string;
+  explicaPizza?: string;
 }) {
   const [aberto, setAberto] = useState<string | null>(null);
   const det = indicadores.find((i) => i.rotulo === aberto)?.detalhe;
@@ -38,7 +40,7 @@ export function Desempenho({ indicadores, barras, pizza }: {
       {det && <div>{det}</div>}
       <div className="mt-8 grid gap-8 md:grid-cols-2">
         <div>
-          <p className="label-caps">{barras.titulo} <Selo tipo="calculo" /></p>
+          <p className="label-caps">{barras.titulo} <Selo tipo="calculo" explica={explicaBarras ?? "Contamos os registros oficiais desta página e agrupamos por período: o eixo horizontal mostra o período e o vertical, a quantidade."} /></p>
           <div className="mt-2 h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barras.dados}>
@@ -52,7 +54,7 @@ export function Desempenho({ indicadores, barras, pizza }: {
           </div>
         </div>
         <div>
-          <p className="label-caps">{pizza.titulo} <Selo tipo="calculo" /></p>
+          <p className="label-caps">{pizza.titulo} <Selo tipo="calculo" explica={explicaPizza ?? "Contamos quantas vezes cada tipo aparece na lista oficial e mostramos a fatia de cada um no total."} /></p>
           <div className="mt-2 flex items-center gap-4">
             <div className="h-56 w-56 shrink-0">
               <ResponsiveContainer width="100%" height="100%">

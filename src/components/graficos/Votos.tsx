@@ -24,7 +24,7 @@ export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoIte
       </div>
       {carregando ? <p className="mt-4 text-sm text-muted-foreground">Lendo o arquivo oficial de votações… isso pode levar alguns segundos.</p>
         : erro ? <p role="alert" className="mt-4 text-sm text-muted-foreground">{erro}</p> : (<>
-        <p className="label-caps mt-4">{noPeriodo.length} votações nominais no período <Selo tipo="calculo" /></p>
+        <p className="label-caps mt-4">{noPeriodo.length} votações nominais no período <Selo tipo="calculo" explica="Filtramos as votações nominais do período escolhido e contamos quantas vezes cada tipo de voto aparece. O percentual de cada botão é sobre as votações desse período." /></p>
         <div className="mt-2 flex flex-wrap gap-2">
           {resumo.map((r) => (
             <button key={r.nome} onClick={() => setVoto(voto === r.nome ? "" : r.nome)} className={`border px-3 py-2 text-left ${voto === r.nome ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`}>
