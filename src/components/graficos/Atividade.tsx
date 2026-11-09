@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Activity, X, ExternalLink, Filter } from "lucide-react";
 import { Selo } from "@/components/Fontes";
+import { useDica } from "@/components/Dica";
 
 export type ItemAtividade = { data: string; tipo: string; titulo: string; detalhe?: string; url?: string };
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -12,6 +13,7 @@ const cor = ["var(--secondary)", "color-mix(in oklch, var(--primary) 30%, var(--
 
 /** Grade estilo GitHub: uma célula por dia; clique mostra os registros do dia. */
 export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividade[]; titulo: string; legenda: string }) {
+  const { ref, mostrar, esconder, dica } = useDica();
   const [meses, setMeses] = useState(12);
   const [tipos, setTipos] = useState<string[]>([]);
   const [dia, setDia] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
         <div className="flex w-8 shrink-0 flex-col pt-5 text-[10px] text-muted-foreground" style={{ gap: 3 }}>
           {DIAS.map((d, i) => <span key={i} className="flex flex-1 items-center">{i % 2 ? d : ""}</span>)}
         </div>
-        <div className="min-w-0 flex-1" style={{ maxWidth: semanas.length * 44 }}>
+        <div ref={ref} className="relative min-w-0 flex-1" style={{ maxWidth: semanas.length * 44 }}>
           <div className="relative h-5 text-[10px] text-muted-foreground">
             {mesesPos.map(({ i, m }) => <span key={`${i}-${m}`} className="absolute" style={{ left: `${(i / semanas.length) * 100}%` }}>{MESES[m]}</span>)}
           </div>
@@ -75,7 +77,7 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
               <div key={w} className="grid" style={{ gap: 3 }}>
                 {col.map((c) => c.fora ? <div key={c.k} className="aspect-square max-h-14" /> : (
                   <button key={c.k} type="button" onClick={() => setDia(c.k === dia ? null : c.k)}
-                    title={`${br(c.k)}: ${c.n} ${legenda}`} aria-label={`${br(c.k)}: ${c.n} ${legenda}`}
+                    onMouseMove={(e) => mostrar(e, <><b>{br(c.k)}</b> · {c.n} {legenda}</>)} onMouseLeave={esconder} onFocus={(e) => mostrar(e, `${br(c.k)} · ${c.n} ${legenda}`)} onBlur={esconder} aria-label={`${br(c.k)}: ${c.n} ${legenda}`}
                     className={`aspect-square max-h-14 w-full ${c.k === dia ? "outline outline-2 outline-offset-1 outline-foreground" : "hover:outline hover:outline-1 hover:outline-foreground"}`}
                     style={{ background: cor[nivel(c.n)] }} />
                 ))}
@@ -83,6 +85,7 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
             ))}
           </div>
           <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
+            {dica}
             menos {cor.map((c, i) => <span key={i} className="h-[11px] w-[11px]" style={{ background: c }} />)} mais
           </div>
         </div>

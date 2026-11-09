@@ -36,11 +36,11 @@ function Index() {
         {[["Deputados em exercício", dep], ["Senadores em exercício", sen], ["Partidos representados", partidos]].map(([l, v]) => (
           <div key={l as string} className="border-foreground py-6 md:border-r md:px-6 md:last:border-r-0">
             <div className="font-display text-5xl font-bold">{v}</div>
-            <div className="mt-1 flex items-center gap-2 text-sm">{l} <Selo tipo={l === "Partidos representados" ? "calculo" : "oficial"} /></div>
+            <div className="mt-1 flex items-center gap-2 text-sm">{l} <Selo tipo={l === "Partidos representados" ? "calculo" : "oficial"} url={l === "Deputados em exercício" ? data.fontes[0]?.url : data.fontes[1]?.url} /></div>
           </div>
         ))}
       </section>
-      <Plenario lista={data.lista} />
+      <Plenario lista={data.lista} fontes={data.fontes} />
       {data.erros.length > 0 && <p className="mt-4 text-destructive">Aviso: {data.erros.join(", ")}.</p>}
       <section className="mt-12 grid gap-8 md:grid-cols-2">
         <div><h2 className="text-2xl font-bold">Evidência antes de inferência</h2><p className="mt-2 text-muted-foreground">Toda informação mostra de onde veio e quando foi coletada. Um gasto alto ou um fornecedor recorrente não significa irregularidade.</p></div>

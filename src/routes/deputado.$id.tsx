@@ -37,7 +37,7 @@ function Dep() {
       <div className="flex flex-wrap gap-6">
         <img src={foto(p.foto)} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
         <div>
-          <p className="label-caps">Deputado(a) federal · Legislatura {p.legislatura} <Selo tipo="oficial" /></p>
+          <p className="label-caps">Deputado(a) federal · Legislatura {p.legislatura} <Selo tipo="oficial" url={`https://www.camara.leg.br/deputados/${id}`} /></p>
           <h1 className="mt-1 text-5xl font-bold">{p.nome}</h1>
           <p className="mt-2 text-lg">{p.partido} · {p.uf} · {p.situacao}</p>
           <p className="text-sm text-muted-foreground">{p.nomeCivil} · nasc. {p.nascimento} em {p.municipioNascimento} · {p.escolaridade}</p>

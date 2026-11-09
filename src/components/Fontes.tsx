@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react";
 import type { Fonte } from "@/lib/fontes.functions";
 
 export function Fontes({ fontes }: { fontes: Fonte[] }) {
@@ -17,6 +18,9 @@ export function Fontes({ fontes }: { fontes: Fonte[] }) {
   );
 }
 
-export function Selo({ tipo }: { tipo: "oficial" | "calculo" }) {
+/** Selo de procedência. Com url, o selo "Dado oficial" abre a fonte numa nova aba. */
+export function Selo({ tipo, url }: { tipo: "oficial" | "calculo"; url?: string | undefined }) {
+  if (tipo === "oficial" && url)
+    return <a href={url} target="_blank" rel="noreferrer" title="Conferir na fonte oficial" className="selo-oficial inline-flex items-center gap-1 hover:underline">Dado oficial<ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only"> (abre em nova aba)</span></a>;
   return <span className={tipo === "oficial" ? "selo-oficial" : "selo-calculo"}>{tipo === "oficial" ? "Dado oficial" : "Cálculo da plataforma"}</span>;
 }

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Armchair } from "lucide-react";
 import { Selo } from "@/components/Fontes";
-import type { Parlamentar } from "@/lib/fontes.functions";
+import { useDica } from "@/components/Dica";
+import type { Fonte, Parlamentar } from "@/lib/fontes.functions";
 
 // Paleta de visualização com cores bem distintas; atribuída pela ordem de tamanho da bancada.
 const PALETA = ["#1f77b4", "#d62728", "#2ca02c", "#ff7f0e", "#9467bd", "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#7f7f7f",
@@ -26,7 +27,8 @@ function assentos(n: number) {
   return { pts: pts.sort((p, q) => q.a - p.a), raio: +(s * 0.42).toFixed(4) };
 }
 
-export function Plenario({ lista }: { lista: Parlamentar[] }) {
+export function Plenario({ lista, fontes }: { lista: Parlamentar[]; fontes: Fonte[] }) {
+  const { ref, mostrar, esconder, dica } = useDica();
   const [casa, setCasa] = useState<"camara" | "senado">("camara");
   const [marcados, setMarcados] = useState<string[]>([]);
   const nav = useNavigate();
@@ -51,16 +53,17 @@ export function Plenario({ lista }: { lista: Parlamentar[] }) {
         <button className={btn(casa === "senado")} onClick={() => { setCasa("senado"); setMarcados([]); }}>Senado</button>
       </div>
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_16rem]">
+        <div ref={ref} className="relative">
         <svg viewBox="-1.04 -1.04 2.08 1.1" className="w-full" role="img" aria-label="Cadeiras agrupadas por partido">
           {ocup.map(({ p, x, y }) => (
             <circle key={p.id} cx={x} cy={-y} r={raio} fill={cores.get(p.partido)} opacity={ativo(p.partido) ? 1 : 0.12}
-              className="cursor-pointer" onClick={() => nav(p.casa === "camara" ? { to: "/deputado/$id", params: { id: p.id } } : { to: "/senador/$id", params: { id: p.id } })}>
-              <title>{`${p.nome} (${p.partido}-${p.uf})`}</title>
-            </circle>
+              className="cursor-pointer" onMouseMove={(e) => mostrar(e, <><b>{p.nome}</b> · {p.partido}-{p.uf}</>)} onMouseLeave={esconder} onClick={() => nav(p.casa === "camara" ? { to: "/deputado/$id", params: { id: p.id } } : { to: "/senador/$id", params: { id: p.id } })}><desc>{`${p.nome} (${p.partido}-${p.uf})`}</desc></circle>
           ))}
           <text x="0" y="-0.1" textAnchor="middle" fontSize="0.16" fontWeight="700" fill="var(--foreground)">{marcados.length ? nMarc : ocup.length}</text>
           <text x="0" y="-0.01" textAnchor="middle" fontSize="0.05" fill="var(--muted-foreground)">{marcados.length ? `de ${ocup.length} cadeiras` : "cadeiras ocupadas"}</text>
         </svg>
+        {dica}
+        </div>
         <fieldset>
           <legend className="label-caps flex w-full items-center justify-between">Partidos {marcados.length > 0 && <button className="link-evidence normal-case" onClick={() => setMarcados([])}>limpar</button>}</legend>
           <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 lg:grid-cols-1">
@@ -76,7 +79,7 @@ export function Plenario({ lista }: { lista: Parlamentar[] }) {
           </ul>
         </fieldset>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Partidos e cadeiras: <Selo tipo="oficial" /> As cadeiras são agrupadas por partido, da maior para a menor bancada. A posição é ilustrativa: Câmara e Senado não divulgam lugares fixos no plenário. Clique numa cadeira para abrir o perfil.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Partidos e cadeiras: <Selo tipo="oficial" url={fontes[casa === "camara" ? 0 : 1]?.url} /> As cadeiras são agrupadas por partido, da maior para a menor bancada. A posição é ilustrativa: Câmara e Senado não divulgam lugares fixos no plenário. Clique numa cadeira para abrir o perfil.</p>
     </section>
   );
 }

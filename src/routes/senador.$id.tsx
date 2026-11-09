@@ -44,7 +44,7 @@ function Sen() {
       <div className="flex flex-wrap gap-6">
         <img src={foto(p.foto)} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
         <div>
-          <p className="label-caps">Senador(a) <Selo tipo="oficial" /></p>
+          <p className="label-caps">Senador(a) <Selo tipo="oficial" url={data.fontes[0]?.url} /></p>
           <h1 className="mt-1 text-5xl font-bold">{p.nome}</h1>
           <p className="mt-2 text-lg">{p.partido} · {p.uf}</p>
           <p className="text-sm text-muted-foreground">{p.nomeCivil}{p.nascimento && ` · nasc. ${p.nascimento}`}{p.municipioNascimento && ` em ${p.municipioNascimento}`}</p>
@@ -76,7 +76,7 @@ function Sen() {
           {data.mandatos.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou mandatos.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className={h2}><Vote className="h-6 w-6" aria-hidden />Votações nominais recentes <Selo tipo="oficial" /></h2>
+        <h2 className={h2}><Vote className="h-6 w-6" aria-hidden />Votações nominais recentes <Selo tipo="oficial" url={data.fontes[3]?.url} /></h2>
         <ul className="mt-2 divide-y divide-border">{data.votacoes.slice(0, 30).map((v, i) => (
           <li key={i} className="grid grid-cols-[6rem_1fr_6rem] gap-3 py-2 text-sm">
             <span className="text-muted-foreground">{v.data}</span>
@@ -86,13 +86,13 @@ function Sen() {
           {data.votacoes.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou votações.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className={h2}><Users className="h-6 w-6" aria-hidden />Comissões atuais <Selo tipo="oficial" /></h2>
+        <h2 className={h2}><Users className="h-6 w-6" aria-hidden />Comissões atuais <Selo tipo="oficial" url={data.fontes[2]?.url} /></h2>
         <ul className="mt-2 divide-y divide-border">{data.comissoes.map((c, i) => (
           <li key={i} className="py-2 text-sm"><b>{c.sigla}</b> {c.nome} <span className="text-muted-foreground">· {c.casa} · {c.participacao} desde {c.inicio}</span></li>))}
           {data.comissoes.length === 0 && <li className="py-2 text-muted-foreground">Nenhuma comissão ativa retornada.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className={h2}><FileText className="h-6 w-6" aria-hidden />Matérias de autoria <Selo tipo="oficial" /></h2>
+        <h2 className={h2}><FileText className="h-6 w-6" aria-hidden />Matérias de autoria <Selo tipo="oficial" url={data.fontes[4]?.url} /></h2>
         <ul className="mt-2 divide-y divide-border">{data.autorias.slice(0, 20).map((a, i) => (
           <li key={i} className="py-2 text-sm"><b>{a.sigla}</b> <span className="text-muted-foreground">{a.data}</span><br />{a.ementa}</li>))}
           {data.autorias.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou autorias.</li>}</ul>
