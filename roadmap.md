@@ -7,6 +7,6 @@
 - [ ] Comparar gastos por período, ranking de parlamentares por gasto, paginação e filtros (proposta enviada; aguarda decisão)
 - [x] Agenda clicável/filtrável, detalhes de desempenho (proposições aprovadas), votos no período
 - [x] Página inicial: mapa do plenário (cadeiras por partido, governo x oposição)
-- [ ] Busca de proposições (Câmara+Senado) com página de detalhe: autores, relatores, tramitação, votações com votos, links
-- [ ] Sugestão enviada: dúvidas sobre votações, comparar perfis de votação, teste de compatibilidade eleitor x parlamentar (aguarda decisão)
-- [ ] Projetos: selo visual de situação (votada, parada, arquivada, sem análise), total na paginação, filtros customizados
+- [x] Busca de proposições (Câmara+Senado) com página de detalhe: autores, relatores, tramitação, votações com votos, links
+- [ ] Depois: dúvidas sobre votações (adiado pelo usuário). [x] Feito: comparar e teste — antes: dúvidas sobre votações, comparar perfis de votação, teste de compatibilidade eleitor x parlamentar (aguarda decisão)
+- [x] Projetos: selo visual de situação (votada, parada, arquivada, sem análise), total na paginação, filtros customizados

@@ -20,7 +20,7 @@ async function cached<T>(k: string, f: () => Promise<T>): Promise<T> {
   return v;
 }
 
-export type ItemBusca = { casa: "camara" | "senado"; id: string; identificacao: string; ementa: string; data: string; autoria: string; situacao: string };
+export type ItemBusca = { casa: "camara" | "senado"; id: string; identificacao: string; ementa: string; data: string; autoria: string; situacao: string; dataSituacao: string };
 export type Busca = { casa: string; q: string; tipo: string; numero: string; ano: string; autor: string; tema: string; tramitando: string; pagina: number };
 
 export const temasCamara = createServerFn({ method: "GET" }).handler(async () =>
@@ -46,10 +46,16 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
       const url = `${CAMARA}/proposicoes?${p}`;
       try {
         const r = await getJson(url);
-        const itens: ItemBusca[] = r.dados.map((x: any) => ({ casa: "camara", id: String(x.id), identificacao: `${x.siglaTipo} ${x.numero}/${x.ano}`, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: "", situacao: "" }));
+        const ultima = Number(new URL(r.links?.find((l: any) => l.rel === "last")?.href ?? url).searchParams.get("pagina")) || b.pagina;
+        const [extra, ultimaPg] = await Promise.all([
+          Promise.all(r.dados.map((x: any) => cached(`st:${x.id}`, async () => { try { const d = (await getJson(`${CAMARA}/proposicoes/${x.id}`)).dados; const st = d.statusProposicao ?? {}; return { situacao: st.descricaoSituacao ?? "", dataSituacao: String(st.dataHora ?? "").slice(0, 10) }; } catch { return { situacao: "", dataSituacao: "" }; } }))),
+          ultima > b.pagina ? cached(`ult:${p}`, async () => { const u2 = new URL(url); u2.searchParams.set("pagina", String(ultima)); try { return (await getJson(u2.toString())).dados.length as number; } catch { return POR; } }) : Promise.resolve(r.dados.length as number),
+        ]);
+        const itens: ItemBusca[] = r.dados.map((x: any, i: number) => ({ casa: "camara", id: String(x.id), identificacao: `${x.siglaTipo} ${x.numero}/${x.ano}`, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: "", ...(extra[i] as { situacao: string; dataSituacao: string }) }));
         const temMais = !!r.links?.some((l: any) => l.rel === "next");
-        return { itens, total: null as number | null, temMais, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
-      } catch { return { itens: [] as ItemBusca[], total: null, temMais: false, erro: "A Câmara não respondeu. Tente de novo ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] }; }
+        const total = ultima > b.pagina ? (ultima - 1) * POR + (ultimaPg as number) : (b.pagina - 1) * POR + r.dados.length;
+        return { itens, total: total as number | null, paginas: Math.max(ultima, b.pagina), temMais, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
+      } catch { return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, erro: "A Câmara não respondeu. Tente de novo ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] }; }
     }
     const p = new URLSearchParams();
     if (b.q) p.set("termo", b.q);
@@ -63,9 +69,9 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
     try {
       const r: any[] = await cached(url, () => getJson(url));
       r.sort((a, c) => String(c.dataApresentacao).localeCompare(String(a.dataApresentacao)));
-      const itens: ItemBusca[] = r.slice((b.pagina - 1) * POR, b.pagina * POR).map((x) => ({ casa: "senado", id: String(x.id), identificacao: x.identificacao, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: x.autoria ?? "", situacao: x.situacaoAtual ?? "" }));
-      return { itens, total: r.length as number | null, temMais: b.pagina * POR < r.length, erro: "", fontes: [fonte("Senado Federal — Dados Abertos", url)] };
-    } catch { return { itens: [] as ItemBusca[], total: null, temMais: false, erro: "O Senado não respondeu. Tente com mais filtros (ex.: ano).", fontes: [fonte("Senado Federal — Dados Abertos", url)] }; }
+      const itens: ItemBusca[] = r.slice((b.pagina - 1) * POR, b.pagina * POR).map((x) => ({ casa: "senado", id: String(x.id), identificacao: x.identificacao, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: x.autoria ?? "", situacao: x.situacaoAtual ?? "", dataSituacao: String(x.dataSituacaoAtual ?? "").slice(0, 10) }));
+      return { itens, total: r.length as number | null, paginas: Math.ceil(r.length / POR), temMais: b.pagina * POR < r.length, erro: "", fontes: [fonte("Senado Federal — Dados Abertos", url)] };
+    } catch { return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, erro: "O Senado não respondeu. Tente com mais filtros (ex.: ano).", fontes: [fonte("Senado Federal — Dados Abertos", url)] }; }
   });
 
 export type Pessoa = { nome: string; papel: string; partido: string; uf: string; casa: "camara" | "senado" | ""; id: string };
