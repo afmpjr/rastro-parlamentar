@@ -75,7 +75,11 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
         const temMais = !!r.links?.some((l: any) => l.rel === "next");
         const total = ultima > b.pagina ? (ultima - 1) * porPg + (ultimaPg as number) : (b.pagina - 1) * porPg + r.dados.length;
         return { itens, total: total as number | null, paginas: Math.max(ultima, b.pagina), temMais, filtradoNaPagina: b.grupo ? examinadas : 0, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
-      } catch { return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, filtradoNaPagina: 0, erro: "A Câmara não respondeu. Tente de novo ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] }; }
+      } catch (e) {
+        console.error("Falha ao consultar proposições da Câmara", e);
+        const indisponivel = e instanceof Error && /Fonte respondeu (502|503|504)/.test(e.message);
+        return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, filtradoNaPagina: 0, erro: indisponivel ? "A Câmara está temporariamente indisponível. A fonte oficial não respondeu a tempo; tente novamente em instantes." : "Não foi possível consultar a Câmara. Tente novamente ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
+      }
     }
     const p = new URLSearchParams();
     if (b.q) p.set("termo", b.q);

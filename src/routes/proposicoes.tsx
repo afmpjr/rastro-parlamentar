@@ -50,9 +50,10 @@ function Pagina() {
   const s = Route.useSearch();
   const nav = useNavigate({ from: "/proposicoes" });
   const [f, setF] = useState(s);
-  const { data } = useSuspenseQuery({ ...busca(s), initialData: Route.useLoaderData() });
+  const { data, refetch, isRefetching } = useSuspenseQuery({ ...busca(s), initialData: Route.useLoaderData() });
   const temas = useQuery({ queryKey: ["temas"], queryFn: () => temasCamara(), staleTime: 86400_000, enabled: f.casa === "camara" });
-  const buscando = useRouterState({ select: (r) => r.status === "pending" || r.isLoading });
+  const carregandoRota = useRouterState({ select: (r) => r.status === "pending" || r.isLoading });
+  const buscando = carregandoRota || isRefetching;
   const set = (k: keyof Busca) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const ir = (p: Partial<Busca>) => nav({ search: { ...f, ...p } });
   return (
@@ -77,7 +78,19 @@ function Pagina() {
           {buscando && <span className="text-sm text-muted-foreground">{f.grupo ? "Consultando a Câmara e verificando a situação de cada proposição — pode levar alguns segundos." : "Consultando a fonte oficial…"}</span>}
         </div>
       </form>
-      {data.erro && <p role="alert" className="mt-6 flex items-center gap-2 border border-destructive px-3 py-2 text-sm text-destructive"><AlertTriangle className="h-4 w-4" aria-hidden />{data.erro}</p>}
+      {data.erro ? (
+        <div role="alert" className="mt-6 flex flex-col gap-4 border border-destructive bg-destructive/5 p-4 sm:flex-row sm:items-start">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" aria-hidden />
+          <div className="flex-1">
+            <p className="font-semibold text-destructive">Não foi possível concluir a busca</p>
+            <p className="mt-1 text-sm text-muted-foreground">{data.erro} Nenhum resultado foi carregado.</p>
+          </div>
+          <button type="button" disabled={buscando} onClick={() => void refetch()} className="flex shrink-0 items-center justify-center gap-2 border border-input bg-card px-4 py-2 text-sm font-medium disabled:opacity-60">
+            {isRefetching ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Search className="h-4 w-4" aria-hidden />}
+            {isRefetching ? "Consultando…" : "Tentar novamente"}
+          </button>
+        </div>
+      ) : (
       <div className={buscando ? "pointer-events-none opacity-50 transition-opacity" : "transition-opacity"} aria-busy={buscando}>
       <p className="mt-6 text-sm text-muted-foreground">
         {data.erro ? "" : (data.filtradoNaPagina ? `${data.itens.length} de ${data.filtradoNaPagina} proposições desta página estão em "${GRUPOS[s.grupo as Grupo]?.rotulo}" · página ${s.pagina} de ${Math.max(1, data.paginas)} (${(data.total ?? 0).toLocaleString("pt-BR")} no total, sem o filtro de situação). A Câmara não permite filtrar por situação na origem, então o filtro é aplicado página a página.` : `${(data.total ?? 0).toLocaleString("pt-BR")} resultado(s) · página ${s.pagina} de ${Math.max(1, data.paginas)}`)}
@@ -112,8 +125,9 @@ function Pagina() {
         <button disabled={!data.temMais} onClick={() => nav({ search: { ...s, pagina: s.pagina + 1 } })} className="flex items-center gap-1 border border-input px-3 py-1 disabled:opacity-40">Próxima<ChevronRight className="h-4 w-4" aria-hidden /></button>
         <button disabled={!data.temMais} onClick={() => nav({ search: { ...s, pagina: data.paginas } })} aria-label="Última página" className="border border-input px-2 py-1 disabled:opacity-40"><ChevronsRight className="h-4 w-4" aria-hidden /></button>
       </div>
-      {!data.erro && data.itens.length === 0 && <p className="py-6 text-sm text-muted-foreground">Nenhuma proposição encontrada{s.grupo ? ` em "${GRUPOS[s.grupo as Grupo]?.rotulo}" nesta página. Use "Próxima" para examinar as seguintes.` : " com esses filtros."}</p>}
+      {data.itens.length === 0 && <p className="py-6 text-sm text-muted-foreground">Nenhuma proposição encontrada{s.grupo ? ` em "${GRUPOS[s.grupo as Grupo]?.rotulo}" nesta página. Use "Próxima" para examinar as seguintes.` : " com esses filtros."}</p>}
       </div>
+      )}
       <Fontes fontes={data.fontes} />
     </div>
   );
