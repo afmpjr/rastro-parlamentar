@@ -1,3 +1,4 @@
+import { PartidoLink } from "@/components/Rotulos";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -73,7 +74,7 @@ export function Plenario({ lista, fontes }: { lista: Parlamentar[]; fontes: Font
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <Checkbox className="rounded-none" checked={marcados.includes(p.s)} onCheckedChange={() => setMarcados((m) => (m.includes(p.s) ? m.filter((x) => x !== p.s) : [...m, p.s]))} />
                   <span className="h-3 w-3 rounded-full" style={{ background: cores.get(p.s) }} />
-                  <span className="flex-1">{p.s}</span><span className="text-muted-foreground">{p.n}</span>
+                  <span className="flex-1"><PartidoLink sigla={p.s} /></span><span className="text-muted-foreground">{p.n}</span>
                 </label>
               </li>
             ))}

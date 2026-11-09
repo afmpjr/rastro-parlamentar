@@ -16,6 +16,8 @@ import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
 import { Route as ProposicoesRouteImport } from './routes/proposicoes'
 import { Route as DeputadoIdRouteImport } from './routes/deputado.$id'
+import { Route as EstadoUfRouteImport } from './routes/estado.$uf'
+import { Route as PartidoSiglaRouteImport } from './routes/partido.$sigla'
 import { Route as SenadorIdRouteImport } from './routes/senador.$id'
 import { Route as ApiPublicFotoRouteImport } from './routes/api/public/foto'
 import { Route as ProposicaoCasaIdRouteImport } from './routes/proposicao.$casa.$id'
@@ -55,6 +57,16 @@ const DeputadoIdRoute = DeputadoIdRouteImport.update({
   path: '/deputado/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstadoUfRoute = EstadoUfRouteImport.update({
+  id: '/estado/$uf',
+  path: '/estado/$uf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartidoSiglaRoute = PartidoSiglaRouteImport.update({
+  id: '/partido/$sigla',
+  path: '/partido/$sigla',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SenadorIdRoute = SenadorIdRouteImport.update({
   id: '/senador/$id',
   path: '/senador/$id',
@@ -79,6 +91,8 @@ export interface FileRoutesByFullPath {
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
+  '/estado/$uf': typeof EstadoUfRoute
+  '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
@@ -91,6 +105,8 @@ export interface FileRoutesByTo {
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
+  '/estado/$uf': typeof EstadoUfRoute
+  '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
@@ -104,6 +120,8 @@ export interface FileRoutesById {
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
+  '/estado/$uf': typeof EstadoUfRoute
+  '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
@@ -118,6 +136,8 @@ export interface FileRouteTypes {
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
+    | '/estado/$uf'
+    | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
     | '/proposicao/$casa/$id'
@@ -130,6 +150,8 @@ export interface FileRouteTypes {
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
+    | '/estado/$uf'
+    | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
     | '/proposicao/$casa/$id'
@@ -142,6 +164,8 @@ export interface FileRouteTypes {
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
+    | '/estado/$uf'
+    | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
     | '/proposicao/$casa/$id'
@@ -155,6 +179,8 @@ export interface RootRouteChildren {
   ParlamentaresRoute: typeof ParlamentaresRoute
   ProposicoesRoute: typeof ProposicoesRoute
   DeputadoIdRoute: typeof DeputadoIdRoute
+  EstadoUfRoute: typeof EstadoUfRoute
+  PartidoSiglaRoute: typeof PartidoSiglaRoute
   SenadorIdRoute: typeof SenadorIdRoute
   ApiPublicFotoRoute: typeof ApiPublicFotoRoute
   ProposicaoCasaIdRoute: typeof ProposicaoCasaIdRoute
@@ -211,6 +237,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeputadoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estado/$uf': {
+      id: '/estado/$uf'
+      path: '/estado/$uf'
+      fullPath: '/estado/$uf'
+      preLoaderRoute: typeof EstadoUfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partido/$sigla': {
+      id: '/partido/$sigla'
+      path: '/partido/$sigla'
+      fullPath: '/partido/$sigla'
+      preLoaderRoute: typeof PartidoSiglaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/senador/$id': {
       id: '/senador/$id'
       path: '/senador/$id'
@@ -243,6 +283,8 @@ const rootRouteChildren: RootRouteChildren = {
   ParlamentaresRoute: ParlamentaresRoute,
   ProposicoesRoute: ProposicoesRoute,
   DeputadoIdRoute: DeputadoIdRoute,
+  EstadoUfRoute: EstadoUfRoute,
+  PartidoSiglaRoute: PartidoSiglaRoute,
   SenadorIdRoute: SenadorIdRoute,
   ApiPublicFotoRoute: ApiPublicFotoRoute,
   ProposicaoCasaIdRoute: ProposicaoCasaIdRoute,

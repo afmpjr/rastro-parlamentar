@@ -192,3 +192,31 @@ export const situacaoProposicoes = createServerFn({ method: "GET" })
     await Promise.all(Array.from({ length: 8 }, worker));
     return { situacoes: out, fonte: fonte("Câmara — proposições (detalhe)", `${CAMARA}/proposicoes/{id}`) };
   });
+
+// Partidos (Câmara): logo oficial, líder e totais. Cache de 1h.
+let cachePartidos: { t: number; v: { sigla: string; id: number; nome: string; logo: string }[] } | null = null;
+async function partidosCamara() {
+  if (cachePartidos && Date.now() - cachePartidos.t < 3600_000) return cachePartidos.v;
+  const lista = (await getJson(`${CAMARA}/partidos?itens=100&ordem=ASC&ordenarPor=sigla`)).dados as any[];
+  const v = await Promise.all(lista.map(async (p) => {
+    let logo = "";
+    try { logo = (await getJson(`${CAMARA}/partidos/${p.id}`)).dados?.urlLogo ?? ""; } catch { /* sem logo */ }
+    return { sigla: String(p.sigla), id: Number(p.id), nome: String(p.nome), logo };
+  }));
+  cachePartidos = { t: Date.now(), v };
+  return v;
+}
+export const logosPartidos = createServerFn({ method: "GET" }).handler(async () => {
+  const v = await partidosCamara();
+  return { logos: Object.fromEntries(v.filter((p) => p.logo).map((p) => [p.sigla.toUpperCase(), p.logo])) as Record<string, string>, fontes: [fonte("Câmara dos Deputados — Partidos", `${CAMARA}/partidos`)] };
+});
+export const detalhePartido = createServerFn({ method: "GET" })
+  .inputValidator((d: { sigla: string }) => ({ sigla: String(d.sigla).slice(0, 20) }))
+  .handler(async ({ data }) => {
+    const v = await partidosCamara();
+    const p = v.find((x) => x.sigla.toUpperCase() === data.sigla.toUpperCase());
+    if (!p) return { partido: null, fontes: [fonte("Câmara dos Deputados — Partidos", `${CAMARA}/partidos`)] };
+    const u = `${CAMARA}/partidos/${p.id}`;
+    const d = (await getJson(u)).dados;
+    return { partido: { sigla: p.sigla, nome: d.nome as string, logo: (d.urlLogo ?? "") as string, site: (d.urlWebSite ?? "") as string, situacao: (d.status?.situacao ?? "") as string, totalMembros: (d.status?.totalMembros ?? "") as string, lider: d.status?.lider ? { id: String(d.status.lider.uri ?? "").split("/").pop() ?? "", nome: d.status.lider.nome as string, uf: d.status.lider.uf as string } : null }, fontes: [fonte("Câmara dos Deputados — Partido", u)] };
+  });
