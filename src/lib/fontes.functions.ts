@@ -92,7 +92,35 @@ export const detalheSenador = createServerFn({ method: "GET" })
         uf: x.UfParlamentar ?? "", participacao: x.DescricaoParticipacao ?? "",
       }));
     } catch { /* fonte opcional */ }
+    const uCom = `${SENADO}/senador/${data.id}/comissoes.json`;
+    const uVot = `${SENADO}/senador/${data.id}/votacoes.json`;
+    const uAut = `${SENADO}/senador/${data.id}/autorias.json`;
+    const arr = (x: any) => (Array.isArray(x) ? x : x ? [x] : []);
+    const [rc, rv, ra] = await Promise.allSettled([getJson(uCom), getJson(uVot), getJson(uAut)]);
+    const comissoes = rc.status === "fulfilled"
+      ? arr(rc.value.MembroComissaoParlamentar?.Parlamentar?.MembroComissoes?.Comissao).map((c: any) => ({
+          sigla: c.IdentificacaoComissao?.SiglaComissao ?? "", nome: c.IdentificacaoComissao?.NomeComissao ?? "",
+          casa: c.IdentificacaoComissao?.SiglaCasaComissao ?? "", participacao: c.DescricaoParticipacao ?? "",
+          inicio: c.DataInicio ?? "", fim: c.DataFim ?? null as string | null,
+        })).filter((c: any) => !c.fim).sort((a: any, b: any) => b.inicio.localeCompare(a.inicio))
+      : [];
+    const votacoes = rv.status === "fulfilled"
+      ? arr(rv.value.VotacaoParlamentar?.Parlamentar?.Votacoes?.Votacao).map((v: any) => ({
+          data: v.SessaoPlenaria?.DataSessao ?? "", materia: v.Materia?.DescricaoIdentificacao ?? "",
+          ementa: v.Materia?.Ementa ?? "", descricao: v.DescricaoVotacao ?? "",
+          voto: v.SiglaDescricaoVoto ?? "", resultado: v.DescricaoResultado ?? "",
+        })).sort((a: any, b: any) => b.data.localeCompare(a.data)).slice(0, 30)
+      : [];
+    const autorias = ra.status === "fulfilled"
+      ? arr(ra.value.MateriasAutoriaParlamentar?.Parlamentar?.Autorias?.Autoria).map((a: any) => ({
+          sigla: a.Materia?.DescricaoIdentificacao ?? "", ementa: a.Materia?.Ementa ?? "",
+          data: a.Materia?.Data ?? a.Materia?.DataApresentacao ?? "", codigo: a.Materia?.Codigo ?? "",
+        })).sort((a: any, b: any) => String(b.data).localeCompare(String(a.data))).slice(0, 20)
+      : [];
     return {
+      comissoes: comissoes as { sigla: string; nome: string; casa: string; participacao: string; inicio: string; fim: string | null }[],
+      votacoes: votacoes as { data: string; materia: string; ementa: string; descricao: string; voto: string; resultado: string }[],
+      autorias: autorias as { sigla: string; ementa: string; data: string; codigo: string }[],
       perfil: {
         nome: i.NomeParlamentar, nomeCivil: i.NomeCompletoParlamentar, partido: i.SiglaPartidoParlamentar,
         uf: i.UfParlamentar, foto: (i.UrlFotoParlamentar ?? "").replace("http://", "https://"),
@@ -100,6 +128,6 @@ export const detalheSenador = createServerFn({ method: "GET" })
         municipioNascimento: db.Naturalidade ?? null, pagina: i.UrlPaginaParlamentar,
       },
       mandatos,
-      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand)],
+      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut)],
     };
   });
