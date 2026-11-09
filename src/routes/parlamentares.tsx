@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { parlamentaresQuery } from "@/lib/parlamentares-query";
 import { Fontes } from "@/components/Fontes";
+import { Escolha } from "@/components/Escolha";
 
 export const Route = createFileRoute("/parlamentares")({
   validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s["q"] === "string" ? { q: s["q"] } : {}),
@@ -37,9 +38,9 @@ function Lista() {
       <h1 className="text-4xl font-bold">Parlamentares</h1>
       <div className="mt-6 flex flex-wrap gap-3">
         <input className={`${sel} min-w-64 flex-1`} placeholder="Buscar" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" />
-        <select className={sel} value={casa} onChange={(e) => setCasa(e.target.value)} aria-label="Casa"><option value="">Câmara e Senado</option><option value="camara">Câmara</option><option value="senado">Senado</option></select>
-        <select className={sel} value={partido} onChange={(e) => setPartido(e.target.value)} aria-label="Partido"><option value="">Todos os partidos</option>{partidos.map((p) => <option key={p}>{p}</option>)}</select>
-        <select className={sel} value={uf} onChange={(e) => setUf(e.target.value)} aria-label="UF"><option value="">Todas as UFs</option>{ufs.map((p) => <option key={p}>{p}</option>)}</select>
+        <Escolha className="w-48" rotulo="Casa" value={casa} onChange={setCasa} opcoes={[{ v: "", l: "Câmara e Senado" }, { v: "camara", l: "Câmara" }, { v: "senado", l: "Senado" }]} />
+        <Escolha className="w-48" rotulo="Partido" value={partido} onChange={setPartido} opcoes={[{ v: "", l: "Todos os partidos" }, ...partidos.map((p) => ({ v: p, l: p }))]} />
+        <Escolha className="w-40" rotulo="UF" value={uf} onChange={setUf} opcoes={[{ v: "", l: "Todas as UFs" }, ...ufs.map((p) => ({ v: p, l: p }))]} />
       </div>
       <p className="label-caps mt-4">{f.length} resultados</p>
       <ul className="mt-4 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">

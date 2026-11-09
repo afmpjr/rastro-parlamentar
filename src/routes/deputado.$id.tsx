@@ -4,6 +4,7 @@ import { useState } from "react";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import { detalheDeputado, votosDeputado } from "@/lib/fontes.functions";
+import { Escolha } from "@/components/Escolha";
 import { Fontes, Selo } from "@/components/Fontes";
 import { ExploradorDespesas } from "@/components/graficos/Despesas";
 import { GradeAtividade } from "@/components/graficos/Atividade";
@@ -87,7 +88,7 @@ function VotosDep({ id }: { id: string }) {
     <>
       <PainelVotos carregando={r.isLoading} erro={r.isError ? "Não foi possível ler o arquivo de votações agora." : undefined}
         votos={(r.data?.votos ?? []).map((v) => ({ data: v.data, voto: v.voto, titulo: `${v.orgao} · ${v.proposicao || "Votação"}`, descricao: v.descricao, aprovada: v.aprovada, url: `https://dadosabertos.camara.leg.br/api/v2/votacoes/${v.idVotacao}` }))}
-        extra={<label className="text-xs">Ano<br /><select className="border border-border bg-background px-2 py-1 text-sm" value={ano} onChange={(e) => setAno(Number(e.target.value))}>{[0, 1, 2, 3].map((k) => <option key={k} value={atual - k}>{atual - k}</option>)}</select></label>} />
+        extra={<div className="text-xs">Ano<br /><Escolha className="h-8 w-24 py-1 text-sm" rotulo="Ano" value={String(ano)} onChange={(v) => setAno(Number(v))} opcoes={[0, 1, 2, 3].map((k) => ({ v: String(atual - k), l: String(atual - k) }))} /></div>} />
       {r.data && <Fontes fontes={r.data.fontes} />}
     </>
   );

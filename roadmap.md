@@ -11,3 +11,4 @@
 - [ ] Depois: dúvidas sobre votações (adiado pelo usuário). [x] Feito: comparar e teste — antes: dúvidas sobre votações, comparar perfis de votação, teste de compatibilidade eleitor x parlamentar (aguarda decisão)
 - [x] Projetos: selo visual de situação (votada, parada, arquivada, sem análise), total na paginação, filtros customizados
 - [x] Projetos: filtro por situação (Câmara e Senado)
+- [x] Trocar controles nativos por customizados; filtro 'votaram igual' no comparador

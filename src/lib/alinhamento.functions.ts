@@ -41,7 +41,7 @@ export const compararParlamentares = createServerFn({ method: "GET" })
       const m = b.votos.get(v.id)!; const vs = data.ids.map((id) => m.get(id)?.[0] ?? "");
       if (vs.every((x) => !x)) return [];
       const ps = vs.map(posicao).filter(Boolean);
-      return [{ id: v.id, data: v.data, descricao: v.descricao, identificacao: v.identificacao, ementa: v.ementa, decidia: oQueSeDecidia(v.descricao), idProp: v.idProp, aprovada: v.aprovada, votos: vs, diverge: new Set(ps).size > 1 }];
+      return [{ id: v.id, data: v.data, descricao: v.descricao, identificacao: v.identificacao, ementa: v.ementa, decidia: oQueSeDecidia(v.descricao), idProp: v.idProp, aprovada: v.aprovada, votos: vs, diverge: new Set(ps).size > 1, igual: ps.length === vs.length && new Set(ps).size === 1 }];
     });
     return { perfis, pares, votacoes, fontes: b.fontes.map((u) => fonte(nomeFonte(data.casa, u), u)) };
   });

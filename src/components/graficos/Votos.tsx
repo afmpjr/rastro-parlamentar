@@ -1,3 +1,4 @@
+import { EscolhaData } from "@/components/Controles";
 import { useMemo, useState } from "react";
 import { Vote, ExternalLink, Check, X as XIcon } from "lucide-react";
 import { Selo } from "@/components/Fontes";
@@ -12,14 +13,14 @@ export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoIte
   const noPeriodo = useMemo(() => votos.filter((v) => (!de || v.data >= de) && (!ate || v.data <= ate)), [votos, de, ate]);
   const resumo = contar(noPeriodo.map((v) => v.voto || "Sem registro"));
   const lista = voto ? noPeriodo.filter((v) => (v.voto || "Sem registro") === voto) : noPeriodo;
-  const inp = "border border-border bg-background px-2 py-1 text-sm";
+  
   return (
     <section className="mt-12">
       <h2 className="flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"><Vote className="h-6 w-6" aria-hidden />Como votou no período</h2>
       <div className="mt-3 flex flex-wrap items-end gap-3">
         {extra}
-        <label className="text-xs">De<br /><input type="date" className={inp} value={de} min={datas[0]} max={datas.at(-1)} onChange={(e) => setDe(e.target.value)} /></label>
-        <label className="text-xs">Até<br /><input type="date" className={inp} value={ate} min={datas[0]} max={datas.at(-1)} onChange={(e) => setAte(e.target.value)} /></label>
+        <div className="text-xs">De<br /><EscolhaData rotulo="Data inicial" value={de} min={datas[0]} max={ate || datas.at(-1)} onChange={setDe} /></div>
+        <div className="text-xs">Até<br /><EscolhaData rotulo="Data final" value={ate} min={de || datas[0]} max={datas.at(-1)} onChange={setAte} /></div>
         {(de || ate || voto) && <button className="border border-border px-2 py-1 text-xs hover:border-foreground" onClick={() => { setDe(""); setAte(""); setVoto(""); }}>Limpar</button>}
       </div>
       {carregando ? <p className="mt-4 text-sm text-muted-foreground">Lendo o arquivo oficial de votações… isso pode levar alguns segundos.</p>

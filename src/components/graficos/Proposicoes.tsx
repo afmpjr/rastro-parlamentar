@@ -1,3 +1,4 @@
+import { Escolha } from "@/components/Escolha";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
@@ -38,8 +39,7 @@ export function DetalheProposicoes({ props, porTipo }: { props: Prop[]; porTipo?
           <button className={btn(sit === "aprov")} onClick={() => setSit("aprov")}>Aprovadas</button>
           <button className={btn(sit === "tram")} onClick={() => setSit("tram")}>Em tramitação</button>
           <button className={btn(sit === "arq")} onClick={() => setSit("arq")}>Arquivadas/rejeitadas</button>
-          <select className="border border-border bg-background px-2 py-1 text-xs" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <option value="">Todos os tipos</option>{tipos.map(([t, e]) => <option key={t} value={t}>{t} ({e.n})</option>)}</select>
+          <Escolha className="h-7 w-44 py-1 text-xs" rotulo="Tipo" value={tipo} onChange={setTipo} opcoes={[{ v: "", l: "Todos os tipos" }, ...tipos.map(([t, e]) => ({ v: t, l: `${t} (${e.n})` }))]} />
         </div>
       )}
       {(!porTipo || tipo) && (

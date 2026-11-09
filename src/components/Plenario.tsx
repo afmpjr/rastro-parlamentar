@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Armchair } from "lucide-react";
@@ -70,7 +71,7 @@ export function Plenario({ lista, fontes }: { lista: Parlamentar[]; fontes: Font
             {partidos.map((p) => (
               <li key={p.s}>
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <input type="checkbox" checked={marcados.includes(p.s)} onChange={() => setMarcados((m) => (m.includes(p.s) ? m.filter((x) => x !== p.s) : [...m, p.s]))} />
+                  <Checkbox className="rounded-none" checked={marcados.includes(p.s)} onCheckedChange={() => setMarcados((m) => (m.includes(p.s) ? m.filter((x) => x !== p.s) : [...m, p.s]))} />
                   <span className="h-3 w-3 rounded-full" style={{ background: cores.get(p.s) }} />
                   <span className="flex-1">{p.s}</span><span className="text-muted-foreground">{p.n}</span>
                 </label>

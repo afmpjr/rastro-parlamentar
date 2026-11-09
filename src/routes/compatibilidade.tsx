@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { HeartHandshake, ThumbsUp, ThumbsDown, SkipForward, RotateCcw } from "lucide-react";
 import { votacoesDoTeste, calcularCompatibilidade } from "@/lib/alinhamento.functions";
 import { Fontes, Selo } from "@/components/Fontes";
+import { Escolha } from "@/components/Escolha";
 
 const ANO = new Date().getFullYear();
 export const Route = createFileRoute("/compatibilidade")({
@@ -41,8 +42,8 @@ function Teste() {
       <h1 className="flex items-center gap-3 text-4xl font-bold"><HeartHandshake className="h-8 w-8 text-primary" aria-hidden />Teste de compatibilidade</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">Estas são votações reais e disputadas do plenário. Diga como você votaria e descubra quem votou mais parecido com você. Suas respostas ficam só neste aparelho.</p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <select className={campo} value={casa} onChange={(e) => { setCasa(e.target.value as "camara" | "senado"); m.reset(); }} aria-label="Casa"><option value="camara">Deputados (Câmara)</option><option value="senado">Senadores (Senado)</option></select>
-        <select className={campo} value={ano} onChange={(e) => { setAno(Number(e.target.value)); m.reset(); }} aria-label="Ano">{[ANO, ANO - 1, ANO - 2].map((a) => <option key={a}>{a}</option>)}</select>
+        <Escolha className="w-56" rotulo="Casa" value={casa} onChange={(v) => { setCasa(v as "camara" | "senado"); m.reset(); }} opcoes={[{ v: "camara", l: "Deputados (Câmara)" }, { v: "senado", l: "Senadores (Senado)" }]} />
+        <Escolha className="w-28" rotulo="Ano" value={String(ano)} onChange={(v) => { setAno(Number(v)); m.reset(); }} opcoes={[ANO, ANO - 1, ANO - 2].map((a) => ({ v: String(a), l: String(a) }))} />
         <button className="flex items-center gap-1 border border-input px-3 py-2" onClick={() => { salvar({}); m.reset(); }}><RotateCcw className="h-4 w-4" aria-hidden />Recomeçar</button>
       </div>
       {q.isLoading ? <p className="mt-8 text-muted-foreground">Escolhendo votações nos arquivos oficiais… pode levar alguns segundos.</p>
@@ -80,7 +81,7 @@ function Teste() {
         <section className="mt-8">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-foreground pb-1">
             <h2 className="flex items-center gap-2 text-2xl font-bold">Quem vota como você <Selo tipo="calculo" explica="Para cada parlamentar, contamos em quantas das votações que você respondeu ele votou Sim ou Não, e em quantas o voto foi igual ao seu. Ausências e abstenções não contam. Só aparece quem votou em pelo menos 3 delas." /></h2>
-            <select className={campo} value={uf} onChange={(e) => setUf(e.target.value)} aria-label="Estado"><option value="">Todos os estados</option>{ufs.map((u) => <option key={u}>{u}</option>)}</select>
+            <Escolha className="w-48" rotulo="Estado" value={uf} onChange={setUf} opcoes={[{ v: "", l: "Todos os estados" }, ...ufs.map((u) => ({ v: u, l: u }))]} />
           </div>
           <ol className="mt-3 divide-y divide-border">
             {rank.slice(0, 50).map((p, i) => (

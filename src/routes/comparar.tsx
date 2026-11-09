@@ -6,6 +6,7 @@ import { parlamentaresQuery } from "@/lib/parlamentares-query";
 import { compararParlamentares } from "@/lib/alinhamento.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
+import { Marcar, Segmentos } from "@/components/Controles";
 import { foto } from "@/lib/foto";
 
 type S = { casa: string; ano: number; ids: string };
@@ -44,7 +45,7 @@ function Comparar() {
   const { data: lista } = useSuspenseQuery({ ...parlamentaresQuery, initialData: Route.useLoaderData() });
   const ids = s.ids.split(",").filter(Boolean).slice(0, 3);
   const daCasa = useMemo(() => lista.lista.filter((p) => p.casa === s.casa), [lista, s.casa]);
-  const [soDiv, setSoDiv] = useState(true);
+  const [modo, setModo] = useState<"todas" | "diverge" | "igual">("diverge");
   const [dif, setDif] = useState(false);
   const setIds = (n: string[]) => nav({ search: { ...s, ids: n.join(",") } });
   const r = useQuery({ queryKey: ["comparar", s.casa, s.ano, ids.join(",")], queryFn: () => compararParlamentares({ data: { casa: s.casa, ano: s.ano, ids } }), enabled: ids.length >= 1, staleTime: 3600_000 });
@@ -73,7 +74,7 @@ function Comparar() {
     ] },
     { titulo: "Concordância", linhas: slots.filter(Boolean).map((o) => ({ rotulo: `Com ${nome(o).split(" ")[0]}`, v: (id: string) => (!id ? "" : id === o ? "—" : carregando ? "…" : pct(id, o)) })) },
   ];
-  const vots = (r.data?.votacoes ?? []).filter((v) => !soDiv || v.diverge);
+  const vots = (r.data?.votacoes ?? []).filter((v) => modo === "todas" || (modo === "diverge" ? v.diverge : v.igual));
   const cols = "grid grid-cols-[8rem_repeat(3,minmax(0,1fr))] gap-x-3 md:grid-cols-[11rem_repeat(3,minmax(0,1fr))]";
   return (
     <div>
@@ -82,7 +83,7 @@ function Comparar() {
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Escolha className="w-40" rotulo="Casa" value={s.casa} onChange={(v) => nav({ search: { casa: v, ano: s.ano, ids: "" } })} opcoes={[{ v: "camara", l: "Câmara" }, { v: "senado", l: "Senado" }]} />
         <Escolha className="w-28" rotulo="Ano" value={String(s.ano)} onChange={(v) => nav({ search: { ...s, ano: Number(v) } })} opcoes={[ANO, ANO - 1, ANO - 2, ANO - 3].map((a) => ({ v: String(a), l: String(a) }))} />
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={dif} onChange={(e) => setDif(e.target.checked)} />Destacar diferenças</label>
+        <Marcar checked={dif} onChange={setDif}>Destacar diferenças</Marcar>
       </div>
 
       <div className="mt-6 overflow-x-auto">
@@ -115,7 +116,7 @@ function Comparar() {
         <section className="mt-10">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-foreground pb-1">
             <h2 className="text-2xl font-bold">Votação a votação ({vots.length})</h2>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={soDiv} onChange={(e) => setSoDiv(e.target.checked)} />Só onde divergiram</label>
+            <Segmentos rotulo="Mostrar votações" value={modo} onChange={setModo} opcoes={[{ v: "todas", l: "Todas" }, { v: "diverge", l: "Divergiram" }, { v: "igual", l: "Votaram igual" }]} />
           </div>
           <div className="overflow-x-auto">
             <table className="mt-2 w-full text-sm">
