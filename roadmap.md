@@ -26,7 +26,8 @@ Métrica: pessoas que abrem o perfil de um parlamentar a cada semana.
 - [x] Importar parlamentares e despesas do ano atual e anterior, com URL, horário e hash de cada coleta.
 - [x] Agendar sincronização diária protegida e registrar falhas sem apagar a última coleta válida.
 - [ ] Migrar rankings e filtros globais para consultas no banco, mantendo os dados oficiais ao vivo como fallback quando fizer sentido.
-- [ ] Criar visão de saúde das coletas e testes das regras de atualização e acesso.
+- [x] Criar visão pública das coletas com fonte, horário, quantidade, hash e falhas.
+- [ ] Criar testes das regras de atualização e acesso à base.
 
 **Critério de saída:** despesas dos 594 parlamentares consultáveis sem baixar arquivos anuais a cada visita, com histórico e procedência preservados.
 
