@@ -1,6 +1,6 @@
 import { Unzip, UnzipInflate } from "fflate";
 
-export type DespCeap = { ano: number; mes: number; tipo: string; fornecedor: string; cnpjCpf: string; valor: number; doc: string | null };
+export type DespCeap = { data: string; ano: number; mes: number; tipo: string; fornecedor: string; cnpjCpf: string; valor: number; doc: string | null };
 const cache = new Map<string, { t: number; dados: DespCeap[] }>();
 export const urlArquivoCeap = (ano: number) => `https://www.camara.leg.br/cotas/Ano-${ano}.csv.zip`;
 
@@ -31,7 +31,7 @@ export async function despesasDoArquivo(ano: number, id: string): Promise<DespCe
       const g = (n: string) => v[cab!.indexOf(n)] ?? "";
       if (g("ideCadastro") !== id) continue;
       out.push({
-        ano: Number(g("numAno")), mes: Number(g("numMes")), tipo: g("txtDescricao"), fornecedor: g("txtFornecedor"),
+        data: g("datEmissao").slice(0, 10), ano: Number(g("numAno")), mes: Number(g("numMes")), tipo: g("txtDescricao"), fornecedor: g("txtFornecedor"),
         cnpjCpf: g("txtCNPJCPF"), valor: Number(g("vlrLiquido").replace(",", ".")) || 0, doc: g("urlDocumento") || null,
       });
     }

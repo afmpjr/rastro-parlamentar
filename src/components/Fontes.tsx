@@ -9,7 +9,7 @@ export function Fontes({ fontes }: { fontes: Fonte[] }) {
           <li key={f.url} className="flex flex-wrap gap-x-2">
             <span className="font-medium">{f.orgao}</span>
             <a className="link-evidence break-all" href={f.url} target="_blank" rel="noreferrer">{f.url}</a>
-            <span className="text-muted-foreground">coletado {new Date(f.coletadoEm).toLocaleString("pt-BR")}</span>
+            <span className="text-muted-foreground">coletado {new Date(f.coletadoEm).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
           </li>
         ))}
       </ul>

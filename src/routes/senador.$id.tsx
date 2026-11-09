@@ -1,30 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { foto } from "@/lib/foto";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { Landmark, Users, Vote, FileText } from "lucide-react";
 import { detalheSenador } from "@/lib/fontes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
+import { ExploradorDespesas } from "@/components/graficos/Despesas";
+import { GradeAtividade } from "@/components/graficos/Atividade";
+import { Desempenho, contar } from "@/components/graficos/Desempenho";
 
-const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const q = (id: string) => queryOptions({ queryKey: ["sen", id], queryFn: () => detalheSenador({ data: { id } }), staleTime: 3600_000 });
 
 export const Route = createFileRoute("/senador/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(q(params.id)),
   head: ({ loaderData }) => {
     const t = loaderData ? `${loaderData.perfil.nome} (${loaderData.perfil.partido}-${loaderData.perfil.uf}) — Plenário Aberto` : "Senador — Plenário Aberto";
-    const d = "Perfil, despesas, votações, comissões e matérias de senador(a), com fonte oficial do Senado Federal.";
-    return { meta: [{ title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }] };
+    const d = "Despesas por categoria e período, presença em votações, desempenho, comissões e matérias de senador(a), com fonte oficial.";
+    return { meta: [{ title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }, { property: "og:type", content: "profile" }, { name: "twitter:card", content: "summary" }] };
   },
+  errorComponent: ({ error }) => <p role="alert" className="text-muted-foreground">Não foi possível carregar este perfil agora: {(error as Error).message}</p>,
+  notFoundComponent: () => <p>Senador(a) não encontrado(a).</p>,
   component: Sen,
 });
 
+const SIGLAS: Record<string, string> = {
+  Votou: "Votou (secreta)", AP: "Atividade parlamentar", "P-NRV": "Presente, não votou", MIS: "Em missão", NA: "Não compareceu",
+  LS: "Licença saúde", LP: "Licença particular", Abstenção: "Abstenção", Obstrução: "Obstrução",
+};
+const h2 = "flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold";
+
 function Sen() {
   const { id } = Route.useParams();
-  const { data } = useSuspenseQuery(q(id));
+  const inicial = Route.useLoaderData();
+  const { data } = useSuspenseQuery({ ...q(id), initialData: inicial });
   const p = data.perfil;
-  const soma = (k: (d: (typeof data.despesas)[number]) => string) => Object.entries(data.despesas.reduce<Record<string, number>>((a, d) => ((a[k(d)] = (a[k(d)] ?? 0) + d.valor), a), {})).sort((a, b) => b[1] - a[1]);
-  const porTipo = soma((d) => d.tipo);
-  const porForn = soma((d) => `${d.fornecedor} (${d.cnpjCpf})`).slice(0, 10);
-  const total = data.despesas.reduce((s, d) => s + d.valor, 0);
+  const umAno = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+  const ult12 = data.votacoes.filter((v) => v.data >= umAno);
+  const votou = (v: string) => /^(sim|não|nao|abstenção|abst|obstrução|p-nrv|votou)/i.test(v);
+  const participacao = ult12.length ? Math.round((ult12.filter((v) => votou(v.voto)).length / ult12.length) * 100) : 0;
+  const autoriasAno = contar(data.autorias.map((a) => String(a.data).slice(0, 4))).sort((a, b) => a.nome.localeCompare(b.nome)).slice(-8);
   return (
     <article>
       <div className="flex flex-wrap gap-6">
@@ -38,32 +51,30 @@ function Sen() {
           {p.pagina && <a className="link-evidence text-sm" href={p.pagina} target="_blank" rel="noreferrer">Página oficial</a>}
         </div>
       </div>
+
+      <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" />
+
+      <GradeAtividade datas={data.votacoes.map((v) => v.data)} titulo="Atividade em votações nominais" legenda="votações" />
+
+      <Desempenho
+        indicadores={[
+          { rotulo: "Votações em 12 meses", valor: String(ult12.length), icone: "votos" },
+          { rotulo: "Votou (sim/não/abst.)", valor: `${participacao}%`, icone: "agenda" },
+          { rotulo: "Matérias de autoria", valor: String(data.autorias.length), icone: "propostas" },
+          { rotulo: "Comissões ativas", valor: String(data.comissoes.length), icone: "tendencia" },
+        ]}
+        barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
+        pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => SIGLAS[v.voto] ?? (v.voto || "Sem registro"))) }}
+      />
+
       <section className="mt-12">
-        <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Mandatos</h2>
+        <h2 className={h2}><Landmark className="h-6 w-6" aria-hidden />Mandatos</h2>
         <ul className="mt-2 divide-y divide-border">{data.mandatos.map((m, i) => <li key={i} className="py-2 text-sm">{m.uf} · {m.participacao} · {m.inicio} a {m.fim}</li>)}
           {data.mandatos.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou mandatos.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Cota parlamentar (CEAPS) · {data.anoDesp}</h2>
-        {data.despesas.length === 0 ? <p className="mt-4 text-muted-foreground">A fonte oficial do Senado não retornou despesas deste(a) senador(a) em {data.anoDesp}.</p> : (
-          <div className="mt-4 grid gap-8 md:grid-cols-2">
-            <div>
-              <p className="label-caps">{data.despesas.length} notas · total {brl(total)} <Selo tipo="calculo" /></p>
-              <ul className="mt-3 space-y-2">{porTipo.map(([t, v]) => (
-                <li key={t}><div className="flex justify-between gap-4 text-sm"><span>{t}</span><span className="font-medium">{brl(v)}</span></div>
-                <div className="h-2 bg-secondary"><div className="h-2 bg-primary" style={{ width: `${(v / (porTipo[0]?.[1] ?? 1)) * 100}%` }} /></div></li>))}</ul>
-            </div>
-            <div>
-              <p className="label-caps">Principais fornecedores <Selo tipo="calculo" /></p>
-              <ol className="mt-3 space-y-1 text-sm">{porForn.map(([f, v]) => <li key={f} className="flex justify-between gap-4 border-b border-border py-1"><span>{f}</span><span className="font-medium">{brl(v)}</span></li>)}</ol>
-              <p className="mt-2 text-xs text-muted-foreground">Fornecedor recorrente não indica irregularidade.</p>
-            </div>
-          </div>)}
-      </section>
-      <section className="mt-12">
-        <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Votações nominais recentes <Selo tipo="oficial" /></h2>
-        <p className="mt-1 text-xs text-muted-foreground">Últimas {data.votacoes.length} votações em plenário.</p>
-        <ul className="mt-2 divide-y divide-border">{data.votacoes.map((v, i) => (
+        <h2 className={h2}><Vote className="h-6 w-6" aria-hidden />Votações nominais recentes <Selo tipo="oficial" /></h2>
+        <ul className="mt-2 divide-y divide-border">{data.votacoes.slice(0, 30).map((v, i) => (
           <li key={i} className="grid grid-cols-[6rem_1fr_6rem] gap-3 py-2 text-sm">
             <span className="text-muted-foreground">{v.data}</span>
             <span><b>{v.materia}</b> — {v.descricao || v.ementa}{v.resultado && <span className="text-muted-foreground"> · {v.resultado}</span>}</span>
@@ -72,14 +83,14 @@ function Sen() {
           {data.votacoes.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou votações.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Comissões atuais <Selo tipo="oficial" /></h2>
+        <h2 className={h2}><Users className="h-6 w-6" aria-hidden />Comissões atuais <Selo tipo="oficial" /></h2>
         <ul className="mt-2 divide-y divide-border">{data.comissoes.map((c, i) => (
           <li key={i} className="py-2 text-sm"><b>{c.sigla}</b> {c.nome} <span className="text-muted-foreground">· {c.casa} · {c.participacao} desde {c.inicio}</span></li>))}
           {data.comissoes.length === 0 && <li className="py-2 text-muted-foreground">Nenhuma comissão ativa retornada.</li>}</ul>
       </section>
       <section className="mt-12">
-        <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Matérias de autoria <Selo tipo="oficial" /></h2>
-        <ul className="mt-2 divide-y divide-border">{data.autorias.map((a, i) => (
+        <h2 className={h2}><FileText className="h-6 w-6" aria-hidden />Matérias de autoria <Selo tipo="oficial" /></h2>
+        <ul className="mt-2 divide-y divide-border">{data.autorias.slice(0, 20).map((a, i) => (
           <li key={i} className="py-2 text-sm"><b>{a.sigla}</b> <span className="text-muted-foreground">{a.data}</span><br />{a.ementa}</li>))}
           {data.autorias.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou autorias.</li>}</ul>
       </section>

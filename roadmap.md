@@ -4,3 +4,4 @@
 - [x] Despesas (CEAPS), votações, comissões e autorias do Senado
 - [ ] Presença parlamentar; votações dos deputados
 - [ ] Página por fornecedor (depende do banco)
+- [ ] Comparar gastos por período, ranking de parlamentares por gasto, paginação e filtros (proposta enviada; aguarda decisão)

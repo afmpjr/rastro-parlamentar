@@ -42,33 +42,30 @@ export const detalheDeputado = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const uDet = `${CAMARA}/deputados/${data.id}`;
     const ano = new Date().getFullYear();
-    const uDesp = `${CAMARA}/deputados/${data.id}/despesas?itens=100&ordem=DESC&ordenarPor=dataDocumento`;
-    const uProp = `${CAMARA}/proposicoes?idDeputadoAutor=${data.id}&itens=15&ordem=DESC&ordenarPor=id`;
+    const uProp = `${CAMARA}/proposicoes?idDeputadoAutor=${data.id}&itens=100&ordem=DESC&ordenarPor=id`;
+    const hoje = new Date().toISOString().slice(0, 10);
+    const umAno = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+    const uEv = `${CAMARA}/deputados/${data.id}/eventos?dataInicio=${umAno}&dataFim=${hoje}&itens=100&ordem=ASC&ordenarPor=dataHoraInicio`;
     const det = await getJson(uDet);
-    const [desp, prop] = await Promise.allSettled([getJson(uDesp), getJson(uProp)]);
-    const s = det.dados.ultimoStatus;
-    type Desp = { ano: number; mes: number; tipo: string; fornecedor: string; cnpjCpf: string; valor: number; doc: string | null };
-    type Prop = { id: number; sigla: string; ementa: string; data: string };
-    const despesas: Desp[] = desp.status === "fulfilled"
-      ? desp.value.dados.map((x: any) => ({
-          ano: x.ano, mes: x.mes, tipo: x.tipoDespesa, fornecedor: x.nomeFornecedor,
-          cnpjCpf: x.cnpjCpfFornecedor, valor: Number(x.valorLiquido) || 0, doc: x.urlDocumento ?? null,
-        }))
-      : [];
-    let origemDesp: "api" | "arquivo" | "nenhuma" = despesas.length ? "api" : "nenhuma";
-    let anoDesp = ano;
-    if (!despesas.length) {
-      const { despesasDoArquivo } = await import("./ceap.server");
-      for (const a of [ano, ano - 1]) {
-        try {
-          const d = await despesasDoArquivo(a, data.id);
-          anoDesp = a;
-          if (d.length) { despesas.push(...d); origemDesp = "arquivo"; break; }
-        } catch (e) { console.error("CEAP arquivo", a, e); }
+    const { despesasDoArquivo, urlArquivoCeap } = await import("./ceap.server");
+    const eventos = async () => {
+      const out: { data: string; tipo: string }[] = [];
+      for (let pg = 1; pg <= 8; pg++) {
+        const r = await getJson(`${uEv}&pagina=${pg}`);
+        for (const e of r.dados) out.push({ data: String(e.dataHoraInicio ?? "").slice(0, 10), tipo: e.descricaoTipo ?? "" });
+        if (!r.links?.some((l: any) => l.rel === "next")) break;
       }
-    }
+      return out;
+    };
+    const [prop, ev, d0, d1] = await Promise.allSettled([getJson(uProp), eventos(), despesasDoArquivo(ano, data.id), despesasDoArquivo(ano - 1, data.id)]);
+    const s = det.dados.ultimoStatus;
+    type Prop = { id: number; sigla: string; tipo: string; ementa: string; data: string };
+    const despesas = [d0, d1].flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+    for (const r of [d0, d1]) if (r.status === "rejected") console.error("CEAP arquivo", r.reason);
+    const proposicoes: Prop[] = prop.status === "fulfilled"
+      ? prop.value.dados.map((p: any) => ({ id: p.id, sigla: `${p.siglaTipo} ${p.numero}/${p.ano}`, tipo: p.siglaTipo, ementa: p.ementa, data: p.dataApresentacao ?? String(p.ano) }))
+      : [];
     return {
-      origemDesp, anoDesp,
       perfil: {
         nome: s.nomeEleitoral, nomeCivil: det.dados.nomeCivil, partido: s.siglaPartido, uf: s.siglaUf,
         foto: s.urlFoto, situacao: s.situacao, email: s.gabinete?.email ?? null,
@@ -76,11 +73,10 @@ export const detalheDeputado = createServerFn({ method: "GET" })
         escolaridade: det.dados.escolaridade, legislatura: s.idLegislatura,
       },
       despesas,
-      despesasArquivo: `https://www.camara.leg.br/cotas/Ano-${anoDesp}.csv.zip`,
-      proposicoes: (prop.status === "fulfilled"
-        ? prop.value.dados.map((p: any) => ({ id: p.id, sigla: `${p.siglaTipo} ${p.numero}/${p.ano}`, ementa: p.ementa, data: p.dataApresentacao }))
-        : []) as Prop[],
-      fontes: [fonte("Câmara — perfil", uDet), fonte("Câmara — despesas CEAP", uDesp), ...(origemDesp === "arquivo" ? [fonte(`Câmara — arquivo anual CEAP ${anoDesp}`, `https://www.camara.leg.br/cotas/Ano-${anoDesp}.csv.zip`)] : []), fonte("Câmara — proposições", uProp)],
+      despesasArquivo: urlArquivoCeap(ano),
+      proposicoes,
+      eventos: ev.status === "fulfilled" ? ev.value : [],
+      fontes: [fonte("Câmara — perfil", uDet), fonte(`Câmara — arquivo anual CEAP ${ano}`, urlArquivoCeap(ano)), fonte(`Câmara — arquivo anual CEAP ${ano - 1}`, urlArquivoCeap(ano - 1)), fonte("Câmara — proposições", uProp), fonte("Câmara — eventos (agenda)", uEv)],
     };
   });
 
@@ -132,31 +128,21 @@ export const detalheSenador = createServerFn({ method: "GET" })
           data: v.SessaoPlenaria?.DataSessao ?? "", materia: v.Materia?.DescricaoIdentificacao ?? "",
           ementa: v.Materia?.Ementa ?? "", descricao: v.DescricaoVotacao ?? "",
           voto: v.SiglaDescricaoVoto ?? "", resultado: v.DescricaoResultado ?? "",
-        })).sort((a: any, b: any) => b.data.localeCompare(a.data)).slice(0, 30)
+        })).sort((a: any, b: any) => b.data.localeCompare(a.data))
       : [];
     const autorias = ra.status === "fulfilled"
       ? arr(ra.value.MateriasAutoriaParlamentar?.Parlamentar?.Autorias?.Autoria).map((a: any) => ({
           sigla: a.Materia?.DescricaoIdentificacao ?? "", ementa: a.Materia?.Ementa ?? "",
           data: a.Materia?.Data ?? a.Materia?.DataApresentacao ?? "", codigo: a.Materia?.Codigo ?? "",
-        })).sort((a: any, b: any) => String(b.data).localeCompare(String(a.data))).slice(0, 20)
+        })).sort((a: any, b: any) => String(b.data).localeCompare(String(a.data)))
       : [];
     const anoAtual = new Date().getFullYear();
-    let anoDesp = anoAtual;
-    let despesas: { data: string; mes: number; tipo: string; fornecedor: string; cnpjCpf: string; valor: number; doc: string }[] = [];
-    try {
-      for (const a of [anoAtual, anoAtual - 1]) {
-        const todas = await ceapsAno(a);
-        despesas = todas.filter((x) => String(x.codSenador) === data.id).map((x) => ({
-          data: x.data ?? "", mes: x.mes, tipo: x.tipoDespesa ?? "", fornecedor: x.fornecedor ?? "",
-          cnpjCpf: x.cpfCnpj ?? "", valor: Number(x.valorReembolsado) || 0, doc: x.documento ?? "",
-        })).sort((a, b) => b.data.localeCompare(a.data));
-        anoDesp = a;
-        if (despesas.length) break;
-      }
-    } catch { /* fonte opcional */ }
-    const uDesp = `${CEAPS}/${anoDesp}`;
+    const despesas = (await Promise.allSettled([ceapsAno(anoAtual), ceapsAno(anoAtual - 1)]))
+      .flatMap((r) => (r.status === "fulfilled" ? r.value : []))
+      .filter((x) => String(x.codSenador) === data.id)
+      .map((x) => ({ data: x.data ?? "", ano: Number(x.ano), mes: Number(x.mes), tipo: x.tipoDespesa ?? "", fornecedor: x.fornecedor ?? "", cnpjCpf: x.cpfCnpj ?? "", valor: Number(x.valorReembolsado) || 0 }));
     return {
-      despesas, anoDesp,
+      despesas,
       comissoes: comissoes as { sigla: string; nome: string; casa: string; participacao: string; inicio: string; fim: string | null }[],
       votacoes: votacoes as { data: string; materia: string; ementa: string; descricao: string; voto: string; resultado: string }[],
       autorias: autorias as { sigla: string; ementa: string; data: string; codigo: string }[],
@@ -167,6 +153,6 @@ export const detalheSenador = createServerFn({ method: "GET" })
         municipioNascimento: db.Naturalidade ?? null, pagina: i.UrlPaginaParlamentar,
       },
       mandatos,
-      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut), fonte("Senado — despesas CEAPS", uDesp)],
+      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut), fonte(`Senado — despesas CEAPS ${anoAtual}`, `${CEAPS}/${anoAtual}`), fonte(`Senado — despesas CEAPS ${anoAtual - 1}`, `${CEAPS}/${anoAtual - 1}`)],
     };
   });
