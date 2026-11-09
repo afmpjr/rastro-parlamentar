@@ -9,7 +9,7 @@ const nomeFonte = (casa: string, u: string) => `${casa === "camara" ? "Câmara" 
 export const compararParlamentares = createServerFn({ method: "GET" })
   .inputValidator((d: { casa: string; ano: number; ids: string[] }) => {
     const ids = [...new Set((d.ids ?? []).filter((x) => /^\d{1,9}$/.test(x)))].slice(0, 4);
-    if (ids.length < 2) throw new Error("Escolha ao menos dois parlamentares");
+    if (ids.length < 1) throw new Error("Escolha ao menos um parlamentar");
     return { casa: valCasa(d.casa), ano: valAno(d.ano), ids };
   })
   .handler(async ({ data }) => {

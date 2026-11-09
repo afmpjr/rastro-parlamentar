@@ -35,7 +35,7 @@ function Prop() {
   const tram = tudo ? d.tramitacao : d.tramitacao.slice(0, 15);
   return (
     <article>
-      <Link to="/proposicoes" search={{ casa: d.casa, q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", pagina: 1 }} className="text-sm underline">Voltar à busca</Link>
+      <Link to="/proposicoes" search={{ casa: d.casa, q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", grupo: "", pagina: 1 }} className="text-sm underline">Voltar à busca</Link>
       <p className="label-caps mt-4">{d.casa === "camara" ? "Câmara dos Deputados" : "Senado Federal"} · {d.tipo}</p>
       <h1 className="text-4xl font-bold">{d.identificacao}</h1>
       <p className="mt-3 max-w-3xl text-lg">{d.ementa}</p>

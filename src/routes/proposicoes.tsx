@@ -28,7 +28,7 @@ const busca = (b: Busca) => queryOptions({ queryKey: ["busca-prop", b], queryFn:
 export const Route = createFileRoute("/proposicoes")({
   validateSearch: (s: Record<string, unknown>): Busca => ({
     casa: str(s["casa"]) === "senado" ? "senado" : "camara", q: str(s["q"]), tipo: str(s["tipo"]), numero: str(s["numero"]), ano: str(s["ano"]),
-    autor: str(s["autor"]), tema: str(s["tema"]), tramitando: str(s["tramitando"]), pagina: Math.max(1, Number(s["pagina"]) || 1),
+    autor: str(s["autor"]), tema: str(s["tema"]), tramitando: str(s["tramitando"]), grupo: str(s["grupo"]), pagina: Math.max(1, Number(s["pagina"]) || 1),
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(busca(deps)),
@@ -70,10 +70,11 @@ function Pagina() {
         ) : (
           <Escolha rotulo="Situação" value={f.tramitando} onChange={(v) => setF({ ...f, tramitando: v })} opcoes={[{ v: "", l: "Qualquer situação" }, { v: "S", l: "Em tramitação" }, { v: "N", l: "Encerradas" }]} />
         )}
-        <button className="flex items-center justify-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground md:col-span-6 md:justify-self-start"><Search className="h-4 w-4" aria-hidden />Buscar</button>
+        <Escolha rotulo="Situação do projeto" value={f.grupo} onChange={(v) => setF({ ...f, grupo: v })} opcoes={[{ v: "", l: "Toda situação" }, ...(Object.keys(GRUPOS) as Grupo[]).filter((g) => g !== "desconhecida").map((g) => ({ v: g, l: GRUPOS[g].rotulo }))]} />
+        <button className="flex items-center justify-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground md:col-span-5 md:justify-self-start"><Search className="h-4 w-4" aria-hidden />Buscar</button>
       </form>
       <p className="mt-6 text-sm text-muted-foreground">
-        {data.erro || `${(data.total ?? 0).toLocaleString("pt-BR")} resultado(s) · página ${s.pagina} de ${Math.max(1, data.paginas)}`}
+        {data.erro || (data.filtradoNaPagina ? `${data.itens.length} de ${data.filtradoNaPagina} proposições desta página estão em "${GRUPOS[s.grupo as Grupo]?.rotulo}" · página ${s.pagina} de ${Math.max(1, data.paginas)} (${(data.total ?? 0).toLocaleString("pt-BR")} no total, sem o filtro de situação). A Câmara não permite filtrar por situação na origem, então o filtro é aplicado página a página.` : `${(data.total ?? 0).toLocaleString("pt-BR")} resultado(s) · página ${s.pagina} de ${Math.max(1, data.paginas)}`)}
         {!s.ano && !s.numero && s.casa === "senado" && !s.q && !s.autor && !s.tipo ? " Sem filtros, mostramos as do ano atual." : ""}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
