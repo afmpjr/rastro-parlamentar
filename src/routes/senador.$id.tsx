@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { foto } from "@/lib/foto";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { detalheSenador } from "@/lib/fontes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
@@ -27,7 +28,7 @@ function Sen() {
   return (
     <article>
       <div className="flex flex-wrap gap-6">
-        <img src={p.foto} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
+        <img src={foto(p.foto)} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
         <div>
           <p className="label-caps">Senador(a) <Selo tipo="oficial" /></p>
           <h1 className="mt-1 text-5xl font-bold">{p.nome}</h1>

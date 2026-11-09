@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { foto } from "@/lib/foto";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { detalheDeputado } from "@/lib/fontes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
@@ -26,7 +27,7 @@ function Dep() {
   return (
     <article>
       <div className="flex flex-wrap gap-6">
-        <img src={p.foto} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
+        <img src={foto(p.foto)} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
         <div>
           <p className="label-caps">Deputado(a) federal · Legislatura {p.legislatura} <Selo tipo="oficial" /></p>
           <h1 className="mt-1 text-5xl font-bold">{p.nome}</h1>
@@ -39,11 +40,11 @@ function Dep() {
       <section className="mt-12">
         <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">Cota parlamentar (CEAP)</h2>
         {data.despesas.length === 0 ? (
-          <p className="mt-4 text-muted-foreground">A API oficial da Câmara não retornou despesas para este parlamentar no momento da coleta. Os dados completos estão no <a className="link-evidence" href={data.despesasArquivo}>arquivo anual oficial</a>. (Lacuna registrada.)</p>
+          <p className="mt-4 text-muted-foreground">A API oficial da Câmara nem o arquivo anual retornaram despesas para este parlamentar. Consulte o <a className="link-evidence" href={data.despesasArquivo}>arquivo anual oficial</a>.</p>
         ) : (
           <div className="mt-4 grid gap-8 md:grid-cols-2">
             <div>
-              <p className="label-caps">Últimas {data.despesas.length} notas · total {brl(total)} <Selo tipo="calculo" /></p>
+              <p className="label-caps">{data.origemDesp === "arquivo" ? `${data.anoDesp} · ${data.despesas.length} notas (arquivo anual oficial)` : `Últimas ${data.despesas.length} notas`} · total {brl(total)} <Selo tipo="calculo" /></p>
               <ul className="mt-3 space-y-2">{porTipo.map(([t, v]) => (
                 <li key={t}><div className="flex justify-between text-sm"><span>{t}</span><span className="font-medium">{brl(v)}</span></div>
                 <div className="h-2 bg-secondary"><div className="h-2 bg-primary" style={{ width: `${(v / (porTipo[0]?.[1] ?? 1)) * 100}%` }} /></div></li>))}

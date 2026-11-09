@@ -55,7 +55,20 @@ export const detalheDeputado = createServerFn({ method: "GET" })
           cnpjCpf: x.cnpjCpfFornecedor, valor: Number(x.valorLiquido) || 0, doc: x.urlDocumento ?? null,
         }))
       : [];
+    let origemDesp: "api" | "arquivo" | "nenhuma" = despesas.length ? "api" : "nenhuma";
+    let anoDesp = ano;
+    if (!despesas.length) {
+      const { despesasDoArquivo } = await import("./ceap.server");
+      for (const a of [ano, ano - 1]) {
+        try {
+          const d = await despesasDoArquivo(a, data.id);
+          anoDesp = a;
+          if (d.length) { despesas.push(...d); origemDesp = "arquivo"; break; }
+        } catch (e) { console.error("CEAP arquivo", a, e); }
+      }
+    }
     return {
+      origemDesp, anoDesp,
       perfil: {
         nome: s.nomeEleitoral, nomeCivil: det.dados.nomeCivil, partido: s.siglaPartido, uf: s.siglaUf,
         foto: s.urlFoto, situacao: s.situacao, email: s.gabinete?.email ?? null,
@@ -63,11 +76,11 @@ export const detalheDeputado = createServerFn({ method: "GET" })
         escolaridade: det.dados.escolaridade, legislatura: s.idLegislatura,
       },
       despesas,
-      despesasArquivo: `https://www.camara.leg.br/cotas/Ano-${ano}.csv.zip`,
+      despesasArquivo: `https://www.camara.leg.br/cotas/Ano-${anoDesp}.csv.zip`,
       proposicoes: (prop.status === "fulfilled"
         ? prop.value.dados.map((p: any) => ({ id: p.id, sigla: `${p.siglaTipo} ${p.numero}/${p.ano}`, ementa: p.ementa, data: p.dataApresentacao }))
         : []) as Prop[],
-      fontes: [fonte("Câmara — perfil", uDet), fonte("Câmara — despesas CEAP", uDesp), fonte("Câmara — proposições", uProp)],
+      fontes: [fonte("Câmara — perfil", uDet), fonte("Câmara — despesas CEAP", uDesp), ...(origemDesp === "arquivo" ? [fonte(`Câmara — arquivo anual CEAP ${anoDesp}`, `https://www.camara.leg.br/cotas/Ano-${anoDesp}.csv.zip`)] : []), fonte("Câmara — proposições", uProp)],
     };
   });
 

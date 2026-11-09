@@ -14,6 +14,7 @@ import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
 import { Route as DeputadoIdRouteImport } from './routes/deputado.$id'
 import { Route as SenadorIdRouteImport } from './routes/senador.$id'
+import { Route as ApiPublicFotoRouteImport } from './routes/api/public/foto'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const SenadorIdRoute = SenadorIdRouteImport.update({
   path: '/senador/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFotoRoute = ApiPublicFotoRouteImport.update({
+  id: '/api/public/foto',
+  path: '/api/public/foto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/parlamentares': typeof ParlamentaresRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
+  '/api/public/foto': typeof ApiPublicFotoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/parlamentares': typeof ParlamentaresRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
+  '/api/public/foto': typeof ApiPublicFotoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,25 @@ export interface FileRoutesById {
   '/parlamentares': typeof ParlamentaresRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
+  '/api/public/foto': typeof ApiPublicFotoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/metodologia' | '/parlamentares' | '/deputado/$id' | '/senador/$id'
+    | '/'
+    | '/metodologia'
+    | '/parlamentares'
+    | '/deputado/$id'
+    | '/senador/$id'
+    | '/api/public/foto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/metodologia' | '/parlamentares' | '/deputado/$id' | '/senador/$id'
+  to:
+    | '/'
+    | '/metodologia'
+    | '/parlamentares'
+    | '/deputado/$id'
+    | '/senador/$id'
+    | '/api/public/foto'
   id:
     | '__root__'
     | '/'
@@ -76,6 +96,7 @@ export interface FileRouteTypes {
     | '/parlamentares'
     | '/deputado/$id'
     | '/senador/$id'
+    | '/api/public/foto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -84,6 +105,7 @@ export interface RootRouteChildren {
   ParlamentaresRoute: typeof ParlamentaresRoute
   DeputadoIdRoute: typeof DeputadoIdRoute
   SenadorIdRoute: typeof SenadorIdRoute
+  ApiPublicFotoRoute: typeof ApiPublicFotoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -123,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SenadorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/foto': {
+      id: '/api/public/foto'
+      path: '/api/public/foto'
+      fullPath: '/api/public/foto'
+      preLoaderRoute: typeof ApiPublicFotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -132,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParlamentaresRoute: ParlamentaresRoute,
   DeputadoIdRoute: DeputadoIdRoute,
   SenadorIdRoute: SenadorIdRoute,
+  ApiPublicFotoRoute: ApiPublicFotoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

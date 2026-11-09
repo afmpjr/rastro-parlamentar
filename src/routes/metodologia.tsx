@@ -11,7 +11,6 @@ export const Route = createFileRoute("/metodologia")({
 });
 
 const lacunas = [
-  ["API de despesas da Câmara retornando vazio", "Alto", "Importar arquivos anuais oficiais (CSV) para banco próprio"],
   ["Presença por parlamentar e votações de deputados", "Médio", "Agregar votações nominais por sessão"],
   ["Histórico/versões das coletas", "Médio", "Armazenar snapshots com hash e data"],
   ["Contratos, emendas, transferências, estados e municípios", "Fora do MVP", "Fases seguintes"],
@@ -21,7 +20,7 @@ function Met() {
   return (
     <article className="max-w-3xl space-y-6">
       <h1 className="text-4xl font-bold">Metodologia e limitações</h1>
-      <p>Os dados vêm diretamente das APIs de Dados Abertos da Câmara dos Deputados e do Senado Federal, consultadas no momento do acesso (com cache de até 1 hora). Cada página lista as URLs exatas consultadas e o horário da coleta.</p>
+      <p>Os dados vêm diretamente das APIs de Dados Abertos da Câmara dos Deputados e do Senado Federal, consultadas no momento do acesso (com cache de até 1 hora). Quando a API de despesas da Câmara volta vazia, lemos o arquivo anual oficial (ZIP/CSV) publicado pela Câmara. Cada página lista as URLs exatas consultadas e o horário da coleta.</p>
       <h2 className="text-2xl font-bold">Como ler</h2>
       <ul className="list-disc space-y-1 pl-6">
         <li><b>Dado oficial</b>: reproduzido como publicado pela fonte.</li>

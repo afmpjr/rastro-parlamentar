@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { foto } from "@/lib/foto";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { parlamentaresQuery } from "@/lib/parlamentares-query";
@@ -45,7 +46,7 @@ function Lista() {
         {f.map((p) => (
           <li key={p.casa + p.id} className="bg-background">
             <Link to={p.casa === "camara" ? "/deputado/$id" : "/senador/$id"} params={{ id: p.id }} className="flex items-center gap-3 p-3 hover:bg-secondary">
-              <img src={p.foto} alt="" loading="lazy" className="h-14 w-11 object-cover grayscale" />
+              <img src={foto(p.foto)} alt="" loading="lazy" className="h-14 w-11 object-cover grayscale" />
               <div><div className="font-semibold">{p.nome}</div><div className="text-sm text-muted-foreground">{p.partido} · {p.uf} · {p.casa === "camara" ? "Deputado(a)" : "Senador(a)"}</div></div>
             </Link>
           </li>
