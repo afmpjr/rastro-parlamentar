@@ -10,33 +10,80 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MetodologiaRouteImport } from './routes/metodologia'
+import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
+import { Route as DeputadoIdRouteImport } from './routes/deputado.$id'
+import { Route as SenadorIdRouteImport } from './routes/senador.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MetodologiaRoute = MetodologiaRouteImport.update({
+  id: '/metodologia',
+  path: '/metodologia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParlamentaresRoute = ParlamentaresRouteImport.update({
+  id: '/parlamentares',
+  path: '/parlamentares',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeputadoIdRoute = DeputadoIdRouteImport.update({
+  id: '/deputado/$id',
+  path: '/deputado/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SenadorIdRoute = SenadorIdRouteImport.update({
+  id: '/senador/$id',
+  path: '/senador/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/metodologia': typeof MetodologiaRoute
+  '/parlamentares': typeof ParlamentaresRoute
+  '/deputado/$id': typeof DeputadoIdRoute
+  '/senador/$id': typeof SenadorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/metodologia': typeof MetodologiaRoute
+  '/parlamentares': typeof ParlamentaresRoute
+  '/deputado/$id': typeof DeputadoIdRoute
+  '/senador/$id': typeof SenadorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/metodologia': typeof MetodologiaRoute
+  '/parlamentares': typeof ParlamentaresRoute
+  '/deputado/$id': typeof DeputadoIdRoute
+  '/senador/$id': typeof SenadorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/metodologia' | '/parlamentares' | '/deputado/$id' | '/senador/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/metodologia' | '/parlamentares' | '/deputado/$id' | '/senador/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/metodologia'
+    | '/parlamentares'
+    | '/deputado/$id'
+    | '/senador/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MetodologiaRoute: typeof MetodologiaRoute
+  ParlamentaresRoute: typeof ParlamentaresRoute
+  DeputadoIdRoute: typeof DeputadoIdRoute
+  SenadorIdRoute: typeof SenadorIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +95,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/metodologia': {
+      id: '/metodologia'
+      path: '/metodologia'
+      fullPath: '/metodologia'
+      preLoaderRoute: typeof MetodologiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parlamentares': {
+      id: '/parlamentares'
+      path: '/parlamentares'
+      fullPath: '/parlamentares'
+      preLoaderRoute: typeof ParlamentaresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deputado/$id': {
+      id: '/deputado/$id'
+      path: '/deputado/$id'
+      fullPath: '/deputado/$id'
+      preLoaderRoute: typeof DeputadoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/senador/$id': {
+      id: '/senador/$id'
+      path: '/senador/$id'
+      fullPath: '/senador/$id'
+      preLoaderRoute: typeof SenadorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MetodologiaRoute: MetodologiaRoute,
+  ParlamentaresRoute: ParlamentaresRoute,
+  DeputadoIdRoute: DeputadoIdRoute,
+  SenadorIdRoute: SenadorIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

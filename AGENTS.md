@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Parliamentary data is fetched live from official Câmara/Senado open-data APIs via server functions in src/lib/fontes.functions.ts, and every response carries its source URLs + collection time; why: provenance is a core product rule.
