@@ -12,8 +12,7 @@ export const Route = createFileRoute("/metodologia")({
 
 const lacunas = [
   ["API de despesas da Câmara retornando vazio", "Alto", "Importar arquivos anuais oficiais (CSV) para banco próprio"],
-  ["Despesas do Senado (CEAPS)", "Alto", "Integrar arquivos públicos do Senado"],
-  ["Votações e presença por parlamentar", "Médio", "Agregar votações nominais por sessão"],
+  ["Presença por parlamentar e votações de deputados", "Médio", "Agregar votações nominais por sessão"],
   ["Histórico/versões das coletas", "Médio", "Armazenar snapshots com hash e data"],
   ["Contratos, emendas, transferências, estados e municípios", "Fora do MVP", "Fases seguintes"],
 ];

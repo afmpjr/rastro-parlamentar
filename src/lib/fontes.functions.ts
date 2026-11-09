@@ -71,6 +71,16 @@ export const detalheDeputado = createServerFn({ method: "GET" })
     };
   });
 
+const CEAPS = "https://adm.senado.gov.br/adm-dadosabertos/api/v1/senadores/despesas_ceaps";
+const cacheCeaps = new Map<number, { t: number; dados: any[] }>();
+async function ceapsAno(ano: number) {
+  const c = cacheCeaps.get(ano);
+  if (c && Date.now() - c.t < 3600_000) return c.dados;
+  const dados = (await getJson(`${CEAPS}/${ano}`)) as any[];
+  cacheCeaps.set(ano, { t: Date.now(), dados });
+  return dados;
+}
+
 export const detalheSenador = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => {
     if (!/^\d{1,9}$/.test(d.id)) throw new Error("id inválido");
@@ -117,7 +127,23 @@ export const detalheSenador = createServerFn({ method: "GET" })
           data: a.Materia?.Data ?? a.Materia?.DataApresentacao ?? "", codigo: a.Materia?.Codigo ?? "",
         })).sort((a: any, b: any) => String(b.data).localeCompare(String(a.data))).slice(0, 20)
       : [];
+    const anoAtual = new Date().getFullYear();
+    let anoDesp = anoAtual;
+    let despesas: { data: string; mes: number; tipo: string; fornecedor: string; cnpjCpf: string; valor: number; doc: string }[] = [];
+    try {
+      for (const a of [anoAtual, anoAtual - 1]) {
+        const todas = await ceapsAno(a);
+        despesas = todas.filter((x) => String(x.codSenador) === data.id).map((x) => ({
+          data: x.data ?? "", mes: x.mes, tipo: x.tipoDespesa ?? "", fornecedor: x.fornecedor ?? "",
+          cnpjCpf: x.cpfCnpj ?? "", valor: Number(x.valorReembolsado) || 0, doc: x.documento ?? "",
+        })).sort((a, b) => b.data.localeCompare(a.data));
+        anoDesp = a;
+        if (despesas.length) break;
+      }
+    } catch { /* fonte opcional */ }
+    const uDesp = `${CEAPS}/${anoDesp}`;
     return {
+      despesas, anoDesp,
       comissoes: comissoes as { sigla: string; nome: string; casa: string; participacao: string; inicio: string; fim: string | null }[],
       votacoes: votacoes as { data: string; materia: string; ementa: string; descricao: string; voto: string; resultado: string }[],
       autorias: autorias as { sigla: string; ementa: string; data: string; codigo: string }[],
@@ -128,6 +154,6 @@ export const detalheSenador = createServerFn({ method: "GET" })
         municipioNascimento: db.Naturalidade ?? null, pagina: i.UrlPaginaParlamentar,
       },
       mandatos,
-      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut)],
+      fontes: [fonte("Senado — perfil", uDet), fonte("Senado — mandatos", uMand), fonte("Senado — comissões", uCom), fonte("Senado — votações", uVot), fonte("Senado — autorias", uAut), fonte("Senado — despesas CEAPS", uDesp)],
     };
   });
