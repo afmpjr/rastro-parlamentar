@@ -7,6 +7,7 @@ export function Header() {
         <Link to="/" className="font-display text-3xl font-bold tracking-tight">Plenário Aberto</Link>
         <nav className="flex gap-6 text-sm font-medium uppercase tracking-wider">
           <Link to="/parlamentares" activeProps={{ className: "text-primary" }}>Parlamentares</Link>
+          <Link to="/proposicoes" search={{ casa: "camara", q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", pagina: 1 }} activeProps={{ className: "text-primary" }}>Projetos</Link>
           <Link to="/metodologia" activeProps={{ className: "text-primary" }}>Metodologia</Link>
         </nav>
       </div>

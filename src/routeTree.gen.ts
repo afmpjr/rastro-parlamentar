@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
+import { Route as ProposicoesRouteImport } from './routes/proposicoes'
 import { Route as DeputadoIdRouteImport } from './routes/deputado.$id'
 import { Route as SenadorIdRouteImport } from './routes/senador.$id'
 import { Route as ApiPublicFotoRouteImport } from './routes/api/public/foto'
+import { Route as ProposicaoCasaIdRouteImport } from './routes/proposicao.$casa.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,6 +31,11 @@ const MetodologiaRoute = MetodologiaRouteImport.update({
 const ParlamentaresRoute = ParlamentaresRouteImport.update({
   id: '/parlamentares',
   path: '/parlamentares',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProposicoesRoute = ProposicoesRouteImport.update({
+  id: '/proposicoes',
+  path: '/proposicoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeputadoIdRoute = DeputadoIdRouteImport.update({
@@ -46,31 +53,42 @@ const ApiPublicFotoRoute = ApiPublicFotoRouteImport.update({
   path: '/api/public/foto',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposicaoCasaIdRoute = ProposicaoCasaIdRouteImport.update({
+  id: '/proposicao/$casa/$id',
+  path: '/proposicao/$casa/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
+  '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
+  '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
+  '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,34 +96,42 @@ export interface FileRouteTypes {
     | '/'
     | '/metodologia'
     | '/parlamentares'
+    | '/proposicoes'
     | '/deputado/$id'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/proposicao/$casa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/metodologia'
     | '/parlamentares'
+    | '/proposicoes'
     | '/deputado/$id'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/proposicao/$casa/$id'
   id:
     | '__root__'
     | '/'
     | '/metodologia'
     | '/parlamentares'
+    | '/proposicoes'
     | '/deputado/$id'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/proposicao/$casa/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MetodologiaRoute: typeof MetodologiaRoute
   ParlamentaresRoute: typeof ParlamentaresRoute
+  ProposicoesRoute: typeof ProposicoesRoute
   DeputadoIdRoute: typeof DeputadoIdRoute
   SenadorIdRoute: typeof SenadorIdRoute
   ApiPublicFotoRoute: typeof ApiPublicFotoRoute
+  ProposicaoCasaIdRoute: typeof ProposicaoCasaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,6 +157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParlamentaresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposicoes': {
+      id: '/proposicoes'
+      path: '/proposicoes'
+      fullPath: '/proposicoes'
+      preLoaderRoute: typeof ProposicoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/deputado/$id': {
       id: '/deputado/$id'
       path: '/deputado/$id'
@@ -152,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposicao/$casa/$id': {
+      id: '/proposicao/$casa/$id'
+      path: '/proposicao/$casa/$id'
+      fullPath: '/proposicao/$casa/$id'
+      preLoaderRoute: typeof ProposicaoCasaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -159,9 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MetodologiaRoute: MetodologiaRoute,
   ParlamentaresRoute: ParlamentaresRoute,
+  ProposicoesRoute: ProposicoesRoute,
   DeputadoIdRoute: DeputadoIdRoute,
   SenadorIdRoute: SenadorIdRoute,
   ApiPublicFotoRoute: ApiPublicFotoRoute,
+  ProposicaoCasaIdRoute: ProposicaoCasaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
