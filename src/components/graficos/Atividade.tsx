@@ -14,9 +14,9 @@ const cor = ["var(--secondary)", "color-mix(in oklch, var(--primary) 30%, var(--
 const corNaoCompareceu = ["var(--secondary)", "color-mix(in oklch, var(--destructive) 45%, var(--secondary))", "color-mix(in oklch, var(--destructive) 65%, var(--secondary))", "color-mix(in oklch, var(--destructive) 85%, var(--secondary))", "var(--destructive)"];
 
 /** Grade estilo GitHub: uma célula por dia; clique mostra os registros do dia. */
-export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false }: { itens: ItemAtividade[]; titulo: string; legenda: string; filtroNatureza?: boolean }) {
+export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false, embutido = false, resumo = false, periodoInicial = 12 }: { itens: ItemAtividade[]; titulo: string; legenda: string; filtroNatureza?: boolean; embutido?: boolean; resumo?: boolean; periodoInicial?: number }) {
   const { ref, mostrar, esconder, dica } = useDica();
-  const [meses, setMeses] = useState(12);
+  const [meses, setMeses] = useState(periodoInicial);
   const [tipos, setTipos] = useState<string[]>([]);
   const [natureza, setNatureza] = useState<"todos" | NaturezaAtividade>("todos");
   const [dia, setDia] = useState<string | null>(null);
@@ -51,11 +51,11 @@ export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false 
   }, [filtrados, meses]);
   const nivel = (n: number) => (n === 0 ? 0 : Math.min(4, Math.ceil((n / (max || 1)) * 4)));
   const doDia = dia ? porDia.get(dia) ?? [] : [];
-  const btn = (on: boolean) => `border px-2 py-1 text-xs ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`;
+  const btn = (on: boolean) => `min-h-9 rounded-sm border px-3 py-1.5 text-xs sm:min-h-8 ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`;
 
   return (
-    <section className="mt-12">
-      <h2 className="flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"><Activity className="h-6 w-6" aria-hidden />{titulo}</h2>
+    <section className={embutido ? "min-w-0" : "mt-12"}>
+      <h2 className={embutido ? "flex items-center gap-2 font-display text-xl font-bold" : "flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"}><Activity className="h-5 w-5 text-primary" aria-hidden />{titulo}</h2>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="label-caps mr-1">Período</span>
         {PERIODOS.map((p) => <button key={p.m} className={btn(meses === p.m)} onClick={() => { setMeses(p.m); setDia(null); }}>{p.r}</button>)}
@@ -68,7 +68,7 @@ export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false 
         <button className={btn(natureza === "nao-compareceu")} onClick={() => { setNatureza("nao-compareceu"); setTipos([]); setMeses(1200); setDia(null); }}>Não compareceu ({itens.filter((i) => i.natureza === "nao-compareceu").length})</button>
       </div>}
       {filtroNatureza && <p className="mt-2 max-w-3xl text-xs text-muted-foreground">Comparecimento: Sim, Não, Abstenção, voto secreto, presente sem registrar voto ou presidência da sessão. Expediente: atividade parlamentar ou missão oficial da Casa. “Não compareceu” reproduz o código NCom e aparece em vermelho. Licenças e demais códigos aparecem apenas em “Todos”. São registros do Senado, não uma inferência da plataforma.</p>}
-      {todosTipos.length > 1 && (
+      {!resumo && todosTipos.length > 1 && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="label-caps mr-1 inline-flex items-center gap-1"><Filter className="h-3 w-3" aria-hidden />Tipo</span>
           <button className={btn(tipos.length === 0)} onClick={() => setTipos([])}>Todos</button>
@@ -80,17 +80,17 @@ export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false 
         <div className="flex w-8 shrink-0 flex-col pt-5 text-[10px] text-muted-foreground" style={{ gap: 3 }}>
           {DIAS.map((d, i) => <span key={i} className="flex flex-1 items-center">{i % 2 ? d : ""}</span>)}
         </div>
-        <div ref={ref} className="relative min-w-0 flex-1" style={{ maxWidth: semanas.length * 44, minWidth: meses > 12 ? semanas.length * 14 : undefined }}>
+        <div ref={ref} className="relative min-w-0 flex-1" style={{ maxWidth: semanas.length * 44, minWidth: meses > 12 ? semanas.length * 14 : meses === 12 ? 620 : meses === 6 ? 360 : undefined }}>
           <div className="relative h-5 text-[10px] text-muted-foreground">
             {mesesPos.map(({ i, m }) => <span key={`${i}-${m}`} className="absolute" style={{ left: `${(i / semanas.length) * 100}%` }}>{MESES[m]}</span>)}
           </div>
           <div className="grid" style={{ gridTemplateColumns: `repeat(${semanas.length}, minmax(0, 1fr))`, gap: 3 }}>
             {semanas.map((col, w) => (
               <div key={w} className="grid" style={{ gap: 3 }}>
-                {col.map((c) => c.fora ? <div key={c.k} className="aspect-square max-h-14" /> : (
+                {col.map((c) => c.fora ? <div key={c.k} className={`aspect-square ${resumo ? "max-h-6" : "max-h-14"}`} /> : (
                   <button key={c.k} type="button" onClick={() => setDia(c.k === dia ? null : c.k)}
                     onMouseMove={(e) => mostrar(e, <><b>{br(c.k)}</b> · {c.n} {legenda}</>)} onMouseLeave={esconder} onFocus={(e) => mostrar(e, `${br(c.k)} · ${c.n} ${legenda}`)} onBlur={esconder} aria-label={`${br(c.k)}: ${c.n} ${legenda}`}
-                    className={`aspect-square max-h-14 w-full ${c.k === dia ? "outline outline-2 outline-offset-1 outline-foreground" : "hover:outline hover:outline-1 hover:outline-foreground"}`}
+                    className={`aspect-square w-full ${resumo ? "max-h-6" : "max-h-14"} ${c.k === dia ? "outline outline-2 outline-offset-1 outline-foreground" : "hover:outline hover:outline-1 hover:outline-foreground"}`}
                     style={{ background: (natureza === "nao-compareceu" ? corNaoCompareceu : cor)[nivel(c.n)] }} />
                 ))}
               </div>

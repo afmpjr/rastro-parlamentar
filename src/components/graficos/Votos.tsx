@@ -8,7 +8,7 @@ import { rotuloVoto } from "@/lib/votos-label";
 export type VotoItem = { data: string; voto: string; titulo: string; descricao?: string; aprovada?: boolean | null; url?: string };
 
 /** Como o parlamentar votou num período escolhido. */
-export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoItem[]; carregando?: boolean; erro?: string | undefined; extra?: React.ReactNode }) {
+export function PainelVotos({ votos, carregando, erro, extra, embutido = false }: { votos: VotoItem[]; carregando?: boolean; erro?: string | undefined; extra?: React.ReactNode; embutido?: boolean }) {
   const datas = votos.map((v) => v.data).sort();
   const [de, setDe] = useState(""); const [ate, setAte] = useState(""); const [voto, setVoto] = useState(""); const [n, setN] = useState(30);
   const noPeriodo = useMemo(() => votos.filter((v) => (!de || v.data >= de) && (!ate || v.data <= ate)), [votos, de, ate]);
@@ -16,8 +16,8 @@ export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoIte
   const lista = voto ? noPeriodo.filter((v) => (rotuloVoto(v.voto) || "Sem registro") === voto) : noPeriodo;
   
   return (
-    <section className="mt-12">
-      <h2 className="flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"><Vote className="h-6 w-6" aria-hidden />Como votou no período</h2>
+    <section className={embutido ? "min-w-0" : "mt-12"}>
+      <h2 className={embutido ? "flex items-center gap-2 border-b pb-3 font-display text-2xl font-bold" : "flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold"}><Vote className="h-6 w-6 text-primary" aria-hidden />Como votou no período</h2>
       <div className="mt-3 flex flex-wrap items-end gap-3">
         {extra}
         <div className="text-xs">De<br /><EscolhaData rotulo="Data inicial" value={de} min={datas[0]} max={ate || datas.at(-1)} onChange={setDe} /></div>

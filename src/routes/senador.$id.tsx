@@ -1,14 +1,25 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { foto } from "@/lib/foto";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Landmark, Users, Vote, FileText } from "lucide-react";
+import { FileText, Landmark, Users } from "lucide-react";
 import { detalheSenador } from "@/lib/fontes.functions";
-import { Fontes, Selo } from "@/components/Fontes";
+import { Fontes } from "@/components/Fontes";
 import { ExploradorDespesas } from "@/components/graficos/Despesas";
 import { PainelVotos } from "@/components/graficos/Votos";
 import { GradeAtividade } from "@/components/graficos/Atividade";
 import { Desempenho, contar } from "@/components/graficos/Desempenho";
 import { naturezaVotoSenado, rotuloVoto } from "@/lib/votos-label";
+import {
+  brlResumido,
+  CabecalhoPerfil,
+  CartaoPerfil,
+  MetricasResumo,
+  NavegacaoPerfil,
+  ResumoDespesas,
+  TituloSecao,
+  VotacoesRecentes,
+  type AbaPerfil,
+} from "@/components/PerfilParlamentar";
 
 const q = (id: string) => queryOptions({ queryKey: ["sen", id], queryFn: () => detalheSenador({ data: { id } }), staleTime: 3600_000 });
 
@@ -24,82 +35,127 @@ export const Route = createFileRoute("/senador/$id")({
   component: Sen,
 });
 
-const h2 = "flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold";
-
 function Sen() {
   const { id } = Route.useParams();
   const inicial = Route.useLoaderData();
   const { data } = useSuspenseQuery({ ...q(id), initialData: inicial });
+  const [aba, setAba] = useState<AbaPerfil>("visao");
   const p = data.perfil;
+  const anoAtual = new Date().getFullYear();
   const umAno = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
   const ult12 = data.votacoes.filter((v) => v.data >= umAno);
   const votou = (v: string) => /^(sim|não|nao|abstenção|abst|obstrução|p-nrv|votou)/i.test(v);
   const participacao = ult12.length ? Math.round((ult12.filter((v) => votou(v.voto)).length / ult12.length) * 100) : 0;
   const autoriasAno = contar(data.autorias.map((a) => String(a.data).slice(0, 4))).sort((a, b) => a.nome.localeCompare(b.nome)).slice(-8);
+  const despesasAno = data.despesas.filter((d) => d.ano === anoAtual).reduce((s, d) => s + d.valor, 0);
+  const mandato = data.mandatos[0];
+  const periodoMandato = mandato?.inicio && mandato.fim ? `Mandato ${mandato.inicio.slice(0, 4)}–${mandato.fim.slice(0, 4)}` : null;
+  const fontePerfil = data.fontes[0]?.url ?? `https://legis.senado.leg.br/dadosabertos/senador/${id}.json`;
+  const paginaOficial = p.pagina || `https://www25.senado.leg.br/web/senadores/senador/-/perfil/${id}`;
+  const atividade = data.votacoes.map((v) => ({
+    data: v.data,
+    tipo: rotuloVoto(v.voto) || "Sem registro",
+    titulo: v.materia,
+    detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — "),
+    natureza: naturezaVotoSenado(v.voto),
+  }));
+  const votos = data.votacoes.map((v) => ({
+    data: v.data,
+    voto: rotuloVoto(v.voto),
+    titulo: v.materia,
+    descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "),
+    aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null,
+  }));
+
   return (
     <article>
-      <div className="flex flex-wrap gap-6">
-        <img src={foto(p.foto)} alt={p.nome} className="h-40 w-32 border border-foreground object-cover" />
-        <div>
-          <p className="label-caps">Senador(a) <Selo tipo="oficial" url={data.fontes[0]?.url} /></p>
-          <h1 className="mt-1 text-5xl font-bold">{p.nome}</h1>
-          <p className="mt-2 text-lg">{p.partido} · {p.uf}</p>
-          <p className="text-sm text-muted-foreground">{p.nomeCivil}{p.nascimento && ` · nasc. ${p.nascimento}`}{p.municipioNascimento && ` em ${p.municipioNascimento}`}</p>
-          {p.email && <p className="text-sm">{p.email}</p>}
-          {p.pagina && <a className="link-evidence text-sm" href={p.pagina} target="_blank" rel="noreferrer">Página oficial</a>}
-        </div>
-      </div>
-
-      <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" />
-
-      <GradeAtividade itens={data.votacoes.map((v) => ({
-        data: v.data, tipo: rotuloVoto(v.voto) || "Sem registro", titulo: v.materia,
-        detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — "),
-        natureza: naturezaVotoSenado(v.voto),
-      }))} titulo="Atividade em votações nominais" legenda="registros" filtroNatureza />
-
-      <Desempenho
-        indicadores={[
-          { rotulo: "Votações em 12 meses", valor: String(ult12.length), icone: "votos" },
-          { rotulo: "Votou (sim/não/abst.)", valor: `${participacao}%`, icone: "agenda" },
-          { rotulo: "Matérias de autoria", valor: String(data.autorias.length), icone: "propostas" },
-          { rotulo: "Comissões ativas", valor: String(data.comissoes.length), icone: "tendencia" },
-        ]}
-        barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
-        pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => rotuloVoto(v.voto) || "Sem registro")) }}
-        explicaBarras="Contamos as matérias de autoria do senador pelo ano de apresentação, a partir da lista oficial de matérias de autoria."
-        explicaPizza="Contamos os votos registrados em plenário por tipo de voto e mostramos a fatia de cada tipo no total de votações."
+      <CabecalhoPerfil
+        id={id}
+        casa="senado"
+        nome={p.nome}
+        partido={p.partido}
+        uf={p.uf}
+        fotoUrl={p.foto}
+        funcao="Senador(a)"
+        fonteUrl={fontePerfil}
+        paginaOficial={paginaOficial}
+        mandato={periodoMandato}
+        detalhes={[p.nomeCivil, p.nascimento && `Nascimento: ${p.nascimento.split("-").reverse().join("/")}`, p.municipioNascimento && `Natural de ${p.municipioNascimento}`]}
+        email={p.email}
       />
 
-      <PainelVotos votos={data.votacoes.map((v) => ({ data: v.data, voto: rotuloVoto(v.voto), titulo: v.materia, descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "), aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null }))} />
-
-      <section className="mt-12">
-        <h2 className={h2}><Landmark className="h-6 w-6" aria-hidden />Mandatos</h2>
-        <ul className="mt-2 divide-y divide-border">{data.mandatos.map((m, i) => <li key={i} className="py-2 text-sm">{m.uf} · {m.participacao} · {m.inicio} a {m.fim}</li>)}
-          {data.mandatos.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou mandatos.</li>}</ul>
-      </section>
-      <section className="mt-12">
-        <h2 className={h2}><Vote className="h-6 w-6" aria-hidden />Votações nominais recentes <Selo tipo="oficial" url={data.fontes[3]?.url} /></h2>
-        <ul className="mt-2 divide-y divide-border">{data.votacoes.slice(0, 30).map((v, i) => (
-          <li key={i} className="grid grid-cols-[6rem_1fr_6rem] gap-3 py-2 text-sm">
-            <span className="text-muted-foreground">{v.data}</span>
-            <span><b>{v.materia}</b> — {v.descricao || v.ementa}{v.resultado && <span className="text-muted-foreground"> · {v.resultado}</span>}</span>
-            <span className="text-right font-bold">{rotuloVoto(v.voto) || "—"}</span>
-          </li>))}
-          {data.votacoes.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou votações.</li>}</ul>
-      </section>
-      <section className="mt-12">
-        <h2 className={h2}><Users className="h-6 w-6" aria-hidden />Comissões atuais <Selo tipo="oficial" url={data.fontes[2]?.url} /></h2>
-        <ul className="mt-2 divide-y divide-border">{data.comissoes.map((c, i) => (
-          <li key={i} className="py-2 text-sm"><b>{c.sigla}</b> {c.nome} <span className="text-muted-foreground">· {c.casa} · {c.participacao} desde {c.inicio}</span></li>))}
-          {data.comissoes.length === 0 && <li className="py-2 text-muted-foreground">Nenhuma comissão ativa retornada.</li>}</ul>
-      </section>
-      <section className="mt-12">
-        <h2 className={h2}><FileText className="h-6 w-6" aria-hidden />Matérias de autoria <Selo tipo="oficial" url={data.fontes[4]?.url} /></h2>
-        <ul className="mt-2 divide-y divide-border">{data.autorias.slice(0, 20).map((a, i) => (
-          <li key={i} className="py-2 text-sm"><b>{a.sigla}</b> <span className="text-muted-foreground">{a.data}</span><br />{a.ementa}</li>))}
-          {data.autorias.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou autorias.</li>}</ul>
-      </section>
+      <NavegacaoPerfil valor={aba} aoMudar={setAba} conteudos={{
+        visao: (
+          <>
+            <MetricasResumo itens={[
+              { rotulo: "Participação em votações", valor: `${participacao}%`, icone: "votos", tipo: "calculo", explica: "Percentual de votações dos últimos 12 meses com Sim, Não, Abstenção, Obstrução, P-NRV ou registro equivalente, sobre o total de votações nominais retornado pelo Senado." },
+              { rotulo: "Votações em 12 meses", valor: String(ult12.length), icone: "agenda", tipo: "calculo", explica: "Contagem das votações nominais oficiais com data dentro dos últimos 12 meses." },
+              { rotulo: "Matérias de autoria", valor: String(data.autorias.length), icone: "propostas", tipo: "oficial", fonte: data.fontes[4]?.url },
+              { rotulo: `Despesas em ${anoAtual}`, valor: brlResumido(despesasAno), icone: "despesas", tipo: "calculo", explica: `Soma dos valores reembolsados pela CEAPS em ${anoAtual}, conforme os registros oficiais disponíveis.` },
+            ]} />
+            <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,1fr)]">
+              <CartaoPerfil><GradeAtividade itens={atividade} titulo="Atividade parlamentar" legenda="registros" filtroNatureza embutido resumo periodoInicial={3} /></CartaoPerfil>
+              <ResumoDespesas despesas={data.despesas} aoVerTodas={() => setAba("despesas")} />
+            </div>
+            <VotacoesRecentes votos={votos} aoVerTodas={() => setAba("votacoes")} />
+          </>
+        ),
+        despesas: <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" embutido />,
+        atividade: (
+          <>
+            <GradeAtividade itens={atividade} titulo="Atividade em votações nominais" legenda="registros" filtroNatureza embutido />
+            <Desempenho
+              indicadores={[
+                { rotulo: "Votações em 12 meses", valor: String(ult12.length), icone: "votos" },
+                { rotulo: "Votou (sim/não/abst.)", valor: `${participacao}%`, icone: "agenda" },
+                { rotulo: "Matérias de autoria", valor: String(data.autorias.length), icone: "propostas" },
+                { rotulo: "Comissões ativas", valor: String(data.comissoes.length), icone: "tendencia" },
+              ]}
+              barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
+              pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => rotuloVoto(v.voto) || "Sem registro")) }}
+              explicaBarras="Contamos as matérias de autoria do senador pelo ano de apresentação, a partir da lista oficial de matérias de autoria."
+              explicaPizza="Contamos os votos registrados em plenário por tipo de voto e mostramos a fatia de cada tipo no total de votações."
+            />
+          </>
+        ),
+        votacoes: <PainelVotos votos={votos} embutido />,
+        proposicoes: (
+          <section>
+            <TituloSecao icone={FileText} titulo="Matérias de autoria" fonte={data.fontes[4]?.url} />
+            <ul className="mt-4 overflow-hidden rounded-lg border bg-card shadow-sm">
+              {data.autorias.slice(0, 30).map((a) => (
+                <li key={a.codigo || `${a.sigla}-${a.data}`} className="border-b p-4 last:border-b-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <a className="link-evidence font-semibold" href={`https://www25.senado.leg.br/web/atividade/materias/-/materia/${a.codigo}`} target="_blank" rel="noreferrer">{a.sigla}</a>
+                    <time className="text-xs text-muted-foreground">{String(a.data).slice(0, 10).split("-").reverse().join("/")}</time>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{a.ementa}</p>
+                </li>
+              ))}
+              {data.autorias.length === 0 && <li className="p-4 text-sm text-muted-foreground">Fonte não retornou autorias.</li>}
+            </ul>
+            {data.autorias.length > 30 && <p className="mt-3 text-sm text-muted-foreground">Exibindo as 30 matérias mais recentes de {data.autorias.length} retornadas pela fonte.</p>}
+          </section>
+        ),
+        comissoes: (
+          <div className="grid gap-8 lg:grid-cols-2">
+            <section>
+              <TituloSecao icone={Users} titulo="Comissões atuais" fonte={data.fontes[2]?.url} />
+              <ul className="mt-4 divide-y divide-border">
+                {data.comissoes.map((c, i) => <li key={`${c.sigla}-${i}`} className="py-3 text-sm"><b>{c.sigla}</b> {c.nome}<p className="mt-1 text-muted-foreground">{c.casa} · {c.participacao} desde {c.inicio.split("-").reverse().join("/")}</p></li>)}
+                {data.comissoes.length === 0 && <li className="py-3 text-sm text-muted-foreground">Nenhuma comissão ativa retornada.</li>}
+              </ul>
+            </section>
+            <section>
+              <TituloSecao icone={Landmark} titulo="Mandatos" fonte={data.fontes[1]?.url} />
+              <ul className="mt-4 divide-y divide-border">
+                {data.mandatos.map((m, i) => <li key={i} className="py-3 text-sm"><b>{m.uf}</b> · {m.participacao}<p className="mt-1 text-muted-foreground">{m.inicio.split("-").reverse().join("/")} a {m.fim.split("-").reverse().join("/")}</p></li>)}
+                {data.mandatos.length === 0 && <li className="py-3 text-sm text-muted-foreground">Fonte não retornou mandatos.</li>}
+              </ul>
+            </section>
+          </div>
+        ),
+      }} />
       <Fontes fontes={data.fontes} />
     </article>
   );

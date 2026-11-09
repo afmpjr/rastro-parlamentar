@@ -11,7 +11,7 @@ Métrica: pessoas que abrem o perfil de um parlamentar a cada semana.
 - [x] Comparar e participar: comparador lado a lado e teste de compatibilidade com votações reais.
 - [x] Conferir a origem: fontes oficiais, horário de coleta e explicação dos cálculos da plataforma.
 - [ ] Revisar os fluxos principais em celular e computador, incluindo carregamento, vazio, erro e navegação por teclado.
-- [ ] Priorizar melhorias visuais de UI/UX e responsividade com base nos perfis e gráficos atuais.
+- [x] Aplicar o mockup aos perfis de deputados e senadores: resumo, navegação por seções e layouts responsivos para computador e celular.
 - [ ] Conferir pontos ainda não validados: votos por período no perfil do senador e identificação dos projetos nas perguntas do teste.
 - [ ] Melhorar o filtro de situação da Câmara enquanto não houver banco: buscar dos mais antigos aos recentes ao selecionar "Arquivada".
 - [x] Agenda: filtro de comparecimento/expediente baseado exclusivamente em dados oficiais, inclusive no perfil do senador.

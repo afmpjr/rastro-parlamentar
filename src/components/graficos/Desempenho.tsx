@@ -55,8 +55,8 @@ export function Desempenho({ indicadores, barras, pizza, explicaBarras, explicaP
         </div>
         <div>
           <p className="label-caps">{pizza.titulo} <Selo tipo="calculo" explica={explicaPizza ?? "Contamos quantas vezes cada tipo aparece na lista oficial e mostramos a fatia de cada um no total."} /></p>
-          <div className="mt-2 flex items-center gap-4">
-            <div className="h-56 w-56 shrink-0">
+          <div className="mt-2 flex flex-col items-center gap-4 sm:flex-row">
+            <div className="h-56 w-full max-w-56 shrink-0 sm:w-56">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pizza.dados} dataKey="n" nameKey="nome" innerRadius={50} outerRadius={90} stroke="var(--background)">
@@ -66,7 +66,7 @@ export function Desempenho({ indicadores, barras, pizza, explicaBarras, explicaP
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <ul className="space-y-1 text-sm">{pizza.dados.slice(0, 8).map((d, i) => (
+            <ul className="w-full space-y-1 text-sm">{pizza.dados.slice(0, 8).map((d, i) => (
               <li key={d.nome} className="flex items-center gap-2"><span className="h-3 w-3 shrink-0" style={{ background: CORES[i % CORES.length] }} />
                 {d.nome} <span className="text-muted-foreground">{d.n} · {((d.n / (totalP || 1)) * 100).toFixed(0)}%</span></li>))}</ul>
           </div>

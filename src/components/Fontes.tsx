@@ -22,7 +22,7 @@ export function Fontes({ fontes }: { fontes: Fonte[] }) {
 const EXPLICA_PADRAO = "Soma, contagem ou percentual feito por nós a partir dos dados oficiais. A fonte publica os itens um a um; o número mostrado aqui é calculado pelo site.";
 
 /** Selo de procedência. "Dado oficial" abre a fonte; "Cálculo da plataforma" explica como o número foi obtido. */
-export function Selo({ tipo, url, explica }: { tipo: "oficial" | "calculo"; url?: string | undefined; explica?: string }) {
+export function Selo({ tipo, url, explica }: { tipo: "oficial" | "calculo"; url?: string | undefined; explica?: string | undefined }) {
   if (tipo === "oficial")
     return url
       ? <a href={url} target="_blank" rel="noreferrer" className="selo-oficial inline-flex items-center gap-1 hover:underline">Dado oficial<ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only"> (abre em nova aba)</span></a>

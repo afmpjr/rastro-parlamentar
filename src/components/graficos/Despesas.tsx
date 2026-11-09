@@ -33,7 +33,7 @@ const ESCALAS: { v: Escala; rotulo: string; Icone: typeof Calendar }[] = [
   { v: "ano", rotulo: "Ano", Icone: CalendarRange },
 ];
 
-export function ExploradorDespesas({ despesas, titulo }: { despesas: Desp[]; titulo: string }) {
+export function ExploradorDespesas({ despesas, titulo, embutido = false }: { despesas: Desp[]; titulo: string; embutido?: boolean }) {
   const anos = useMemo(() => [...new Set(despesas.map((d) => d.ano))].sort((a, b) => b - a), [despesas]);
   const [escala, setEscala] = useState<Escala>("mes");
   const [ano, setAno] = useState<number | "todos">(anos[0] ?? "todos");
@@ -71,8 +71,8 @@ export function ExploradorDespesas({ despesas, titulo }: { despesas: Desp[]; tit
   const btn = (ativo: boolean) => `inline-flex items-center gap-1.5 border px-3 py-1.5 text-sm transition-colors ${ativo ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`;
 
   return (
-    <section className="mt-12">
-      <h2 className="border-b-2 border-foreground pb-1 text-2xl font-bold">{titulo}</h2>
+    <section className={embutido ? "min-w-0" : "mt-12"}>
+      <h2 className={embutido ? "border-b pb-3 font-display text-2xl font-bold" : "border-b-2 border-foreground pb-1 text-2xl font-bold"}>{titulo}</h2>
       {despesas.length === 0 ? <p className="mt-4 text-muted-foreground">A fonte oficial não retornou despesas no período consultado.</p> : (<>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="label-caps mr-1">Agrupar por</span>
