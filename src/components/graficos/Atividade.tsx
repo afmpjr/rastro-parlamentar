@@ -3,25 +3,29 @@ import { Activity, X, ExternalLink, Filter } from "lucide-react";
 import { Selo } from "@/components/Fontes";
 import { useDica } from "@/components/Dica";
 
-export type ItemAtividade = { data: string; tipo: string; titulo: string; detalhe?: string; url?: string };
+export type NaturezaAtividade = "comparecimento" | "expediente" | "nao-compareceu";
+export type ItemAtividade = { data: string; tipo: string; titulo: string; detalhe?: string; url?: string; natureza?: NaturezaAtividade | undefined };
 const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-const PERIODOS = [{ m: 1, r: "1 mês" }, { m: 3, r: "3 meses" }, { m: 6, r: "6 meses" }, { m: 12, r: "12 meses" }];
+const PERIODOS = [{ m: 1, r: "1 mês" }, { m: 3, r: "3 meses" }, { m: 6, r: "6 meses" }, { m: 12, r: "12 meses" }, { m: 1200, r: "Todo o histórico" }];
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const br = (k: string) => k.split("-").reverse().join("/");
 const cor = ["var(--secondary)", "color-mix(in oklch, var(--primary) 30%, var(--secondary))", "color-mix(in oklch, var(--primary) 55%, var(--secondary))", "color-mix(in oklch, var(--primary) 80%, var(--secondary))", "var(--primary)"];
+const corNaoCompareceu = ["var(--secondary)", "color-mix(in oklch, var(--destructive) 45%, var(--secondary))", "color-mix(in oklch, var(--destructive) 65%, var(--secondary))", "color-mix(in oklch, var(--destructive) 85%, var(--secondary))", "var(--destructive)"];
 
 /** Grade estilo GitHub: uma célula por dia; clique mostra os registros do dia. */
-export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividade[]; titulo: string; legenda: string }) {
+export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false }: { itens: ItemAtividade[]; titulo: string; legenda: string; filtroNatureza?: boolean }) {
   const { ref, mostrar, esconder, dica } = useDica();
   const [meses, setMeses] = useState(12);
   const [tipos, setTipos] = useState<string[]>([]);
+  const [natureza, setNatureza] = useState<"todos" | NaturezaAtividade>("todos");
   const [dia, setDia] = useState<string | null>(null);
+  const daNatureza = useMemo(() => natureza === "todos" ? itens : itens.filter((i) => i.natureza === natureza), [itens, natureza]);
   const todosTipos = useMemo(() => {
-    const m = new Map<string, number>(); for (const i of itens) if (i.tipo) m.set(i.tipo, (m.get(i.tipo) ?? 0) + 1);
+    const m = new Map<string, number>(); for (const i of daNatureza) if (i.tipo) m.set(i.tipo, (m.get(i.tipo) ?? 0) + 1);
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
-  }, [itens]);
-  const filtrados = useMemo(() => (tipos.length ? itens.filter((i) => tipos.includes(i.tipo)) : itens), [itens, tipos]);
+  }, [daNatureza]);
+  const filtrados = useMemo(() => (tipos.length ? daNatureza.filter((i) => tipos.includes(i.tipo)) : daNatureza), [daNatureza, tipos]);
 
   const { semanas, max, total, ativos, mesesPos, porDia } = useMemo(() => {
     const porDia = new Map<string, ItemAtividade[]>();
@@ -56,6 +60,14 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
         <span className="label-caps mr-1">Período</span>
         {PERIODOS.map((p) => <button key={p.m} className={btn(meses === p.m)} onClick={() => { setMeses(p.m); setDia(null); }}>{p.r}</button>)}
       </div>
+      {filtroNatureza && <div className="mt-2 flex flex-wrap items-center gap-2">
+        <span className="label-caps mr-1 inline-flex items-center gap-1"><Filter className="h-3 w-3" aria-hidden />Registro oficial</span>
+        <button className={btn(natureza === "todos")} onClick={() => { setNatureza("todos"); setTipos([]); setDia(null); }}>Todos</button>
+        <button className={btn(natureza === "comparecimento")} onClick={() => { setNatureza("comparecimento"); setTipos([]); setDia(null); }}>Comparecimento</button>
+        <button className={btn(natureza === "expediente")} onClick={() => { setNatureza("expediente"); setTipos([]); setDia(null); }}>Expediente</button>
+        <button className={btn(natureza === "nao-compareceu")} onClick={() => { setNatureza("nao-compareceu"); setTipos([]); setMeses(1200); setDia(null); }}>Não compareceu ({itens.filter((i) => i.natureza === "nao-compareceu").length})</button>
+      </div>}
+      {filtroNatureza && <p className="mt-2 max-w-3xl text-xs text-muted-foreground">Comparecimento: Sim, Não, Abstenção, voto secreto, presente sem registrar voto ou presidência da sessão. Expediente: atividade parlamentar ou missão oficial da Casa. “Não compareceu” reproduz o código NCom e aparece em vermelho. Licenças e demais códigos aparecem apenas em “Todos”. São registros do Senado, não uma inferência da plataforma.</p>}
       {todosTipos.length > 1 && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="label-caps mr-1 inline-flex items-center gap-1"><Filter className="h-3 w-3" aria-hidden />Tipo</span>
@@ -64,11 +76,11 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
         </div>
       )}
       <p className="label-caps mt-4">{total} {legenda} em {ativos} dias no período <Selo tipo="calculo" explica="Contamos os registros oficiais do tipo escolhido no período selecionado e em quantos dias eles aparecem. A fonte publica cada registro; a soma é feita por nós." /></p>
-      <div className="mt-3 flex gap-1">
+      <div className="mt-3 flex gap-1 overflow-x-auto pb-2">
         <div className="flex w-8 shrink-0 flex-col pt-5 text-[10px] text-muted-foreground" style={{ gap: 3 }}>
           {DIAS.map((d, i) => <span key={i} className="flex flex-1 items-center">{i % 2 ? d : ""}</span>)}
         </div>
-        <div ref={ref} className="relative min-w-0 flex-1" style={{ maxWidth: semanas.length * 44 }}>
+        <div ref={ref} className="relative min-w-0 flex-1" style={{ maxWidth: semanas.length * 44, minWidth: meses > 12 ? semanas.length * 14 : undefined }}>
           <div className="relative h-5 text-[10px] text-muted-foreground">
             {mesesPos.map(({ i, m }) => <span key={`${i}-${m}`} className="absolute" style={{ left: `${(i / semanas.length) * 100}%` }}>{MESES[m]}</span>)}
           </div>
@@ -79,14 +91,14 @@ export function GradeAtividade({ itens, titulo, legenda }: { itens: ItemAtividad
                   <button key={c.k} type="button" onClick={() => setDia(c.k === dia ? null : c.k)}
                     onMouseMove={(e) => mostrar(e, <><b>{br(c.k)}</b> · {c.n} {legenda}</>)} onMouseLeave={esconder} onFocus={(e) => mostrar(e, `${br(c.k)} · ${c.n} ${legenda}`)} onBlur={esconder} aria-label={`${br(c.k)}: ${c.n} ${legenda}`}
                     className={`aspect-square max-h-14 w-full ${c.k === dia ? "outline outline-2 outline-offset-1 outline-foreground" : "hover:outline hover:outline-1 hover:outline-foreground"}`}
-                    style={{ background: cor[nivel(c.n)] }} />
+                    style={{ background: (natureza === "nao-compareceu" ? corNaoCompareceu : cor)[nivel(c.n)] }} />
                 ))}
               </div>
             ))}
           </div>
           <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
             {dica}
-            menos {cor.map((c, i) => <span key={i} className="h-[11px] w-[11px]" style={{ background: c }} />)} mais
+            menos {(natureza === "nao-compareceu" ? corNaoCompareceu : cor).map((c, i) => <span key={i} className="h-[11px] w-[11px]" style={{ background: c }} />)} mais
           </div>
         </div>
       </div>

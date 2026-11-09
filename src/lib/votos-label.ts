@@ -32,6 +32,14 @@ export const EXPLICA_VOTO: Record<string, string> = {
   "Presidente (art. 51 RISF)": "Quem preside a sessão não vota, pelo art. 51 do regimento do Senado.",
 };
 
+/** Classifica somente códigos oficiais do Senado para os filtros da agenda. */
+export function naturezaVotoSenado(v: string): "comparecimento" | "expediente" | "nao-compareceu" | undefined {
+  if (v === "NCom") return "nao-compareceu";
+  if (["AP", "MIS"].includes(v)) return "expediente";
+  if (["Sim", "Não", "Abstenção", "Votou", "P-NRV", "Presidente (art. 51 RISF)"].includes(v)) return "comparecimento";
+  return undefined;
+}
+
 /** Rótulo legível do voto. Devolve o próprio texto quando a fonte já publica por extenso. */
 export const rotuloVoto = (v: string | undefined) => ROTULO_VOTO[(v ?? "").trim()] ?? (v ?? "");
 

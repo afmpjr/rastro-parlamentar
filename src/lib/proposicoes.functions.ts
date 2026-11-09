@@ -37,7 +37,7 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
   .handler(async ({ data: b }) => {
     const POR = 20;
     if (b.casa === "camara") {
-      const p = new URLSearchParams({ itens: String(POR), pagina: String(b.pagina), ordem: "DESC", ordenarPor: "id" });
+      const p = new URLSearchParams({ itens: String(POR), pagina: String(b.pagina), ordem: ["arquivada", "aprovada", "encerrada"].includes(b.grupo) ? "ASC" : "DESC", ordenarPor: "id" });
       if (b.q) p.set("keywords", b.q);
       if (b.tipo) p.set("siglaTipo", b.tipo);
       if (b.numero) p.set("numero", b.numero);
@@ -54,12 +54,27 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
           Promise.all(r.dados.map((x: any) => cached(`st:${x.id}`, async () => { try { const d = (await getJson(`${CAMARA}/proposicoes/${x.id}`)).dados; const st = d.statusProposicao ?? {}; return { situacao: st.descricaoSituacao ?? "", dataSituacao: String(st.dataHora ?? "").slice(0, 10) }; } catch { return { situacao: "", dataSituacao: "" }; } }))),
           ultima > b.pagina ? cached(`ult:${p}`, async () => { const u2 = new URL(url); u2.searchParams.set("pagina", String(ultima)); try { return (await getJson(u2.toString())).dados.length as number; } catch { return POR; } }) : Promise.resolve(r.dados.length as number),
         ]);
-        const todos: ItemBusca[] = r.dados.map((x: any, i: number) => ({ casa: "camara", id: String(x.id), identificacao: `${x.siglaTipo} ${x.numero}/${x.ano}`, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: "", ...(extra[i] as { situacao: string; dataSituacao: string }) }));
-        const itens = b.grupo ? todos.filter((x) => grupoSituacao(x.situacao) === b.grupo) : todos;
+        let todos: ItemBusca[] = r.dados.map((x: any, i: number) => ({ casa: "camara", id: String(x.id), identificacao: `${x.siglaTipo} ${x.numero}/${x.ano}`, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: "", ...(extra[i] as { situacao: string; dataSituacao: string }) }));
+        let examinadas = r.dados.length as number;
+        // A API não filtra por situação. Quando a página não tem o grupo pedido,
+        // examina as próximas páginas até achar resultados (limite de 5 por consulta).
+        if (b.grupo && !todos.some((x) => grupoSituacao(x.situacao) === b.grupo)) {
+          for (let salto = 1; salto <= 1; salto++) {
+            const proxima = ["arquivada", "aprovada", "encerrada"].includes(b.grupo) ? b.pagina - salto : b.pagina + salto;
+            if (proxima < 1 || proxima > ultima) break;
+            const u = new URL(url); u.searchParams.set("pagina", String(proxima));
+            const r2 = await getJson(u.toString());
+            const detalhes = await Promise.all(r2.dados.map((x: any) => cached(`st:${x.id}`, async () => { try { const d = (await getJson(`${CAMARA}/proposicoes/${x.id}`)).dados; const st = d.statusProposicao ?? {}; return { situacao: st.descricaoSituacao ?? "", dataSituacao: String(st.dataHora ?? "").slice(0, 10) }; } catch { return { situacao: "", dataSituacao: "" }; } })));
+            const mais: ItemBusca[] = r2.dados.map((x: any, i: number) => ({ casa: "camara" as const, id: String(x.id), identificacao: `${x.siglaTipo} ${x.numero}/${x.ano}`, ementa: x.ementa ?? "", data: String(x.dataApresentacao ?? "").slice(0, 10), autoria: "", ...(detalhes[i] as { situacao: string; dataSituacao: string }) }));
+            todos = [...todos, ...mais]; examinadas += r2.dados.length;
+            if (mais.some((x) => grupoSituacao(x.situacao) === b.grupo)) break;
+          }
+        }
+        const itens = b.grupo ? todos.filter((x) => grupoSituacao(x.situacao) === b.grupo).slice(0, 20) : todos;
         const porPg = b.grupo ? 50 : POR;
-        const temMais = !!r.links?.some((l: any) => l.rel === "next");
+        const temMais = ["arquivada", "aprovada", "encerrada"].includes(b.grupo) ? b.pagina > 1 : !!r.links?.some((l: any) => l.rel === "next");
         const total = ultima > b.pagina ? (ultima - 1) * porPg + (ultimaPg as number) : (b.pagina - 1) * porPg + r.dados.length;
-        return { itens, total: total as number | null, paginas: Math.max(ultima, b.pagina), temMais, filtradoNaPagina: b.grupo ? r.dados.length as number : 0, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
+        return { itens, total: total as number | null, paginas: Math.max(ultima, b.pagina), temMais, filtradoNaPagina: b.grupo ? examinadas : 0, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
       } catch { return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, filtradoNaPagina: 0, erro: "A Câmara não respondeu. Tente de novo ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] }; }
     }
     const p = new URLSearchParams();

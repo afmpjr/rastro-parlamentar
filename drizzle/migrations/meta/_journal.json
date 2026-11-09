@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794246760664,
+      "tag": "0000_base_parlamentares_despesas_proveniencia",
+      "breakpoints": true
+    }
+  ]
+}

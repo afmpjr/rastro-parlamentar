@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ColetasRouteImport } from './routes/coletas'
 import { Route as CompararRouteImport } from './routes/comparar'
 import { Route as CompatibilidadeRouteImport } from './routes/compatibilidade'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
@@ -20,11 +21,17 @@ import { Route as EstadoUfRouteImport } from './routes/estado.$uf'
 import { Route as PartidoSiglaRouteImport } from './routes/partido.$sigla'
 import { Route as SenadorIdRouteImport } from './routes/senador.$id'
 import { Route as ApiPublicFotoRouteImport } from './routes/api/public/foto'
+import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
 import { Route as ProposicaoCasaIdRouteImport } from './routes/proposicao.$casa.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ColetasRoute = ColetasRouteImport.update({
+  id: '/coletas',
+  path: '/coletas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompararRoute = CompararRouteImport.update({
@@ -77,6 +84,11 @@ const ApiPublicFotoRoute = ApiPublicFotoRouteImport.update({
   path: '/api/public/foto',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncRoute = ApiPublicSyncRouteImport.update({
+  id: '/api/public/sync',
+  path: '/api/public/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProposicaoCasaIdRoute = ProposicaoCasaIdRouteImport.update({
   id: '/proposicao/$casa/$id',
   path: '/proposicao/$casa/$id',
@@ -85,6 +97,7 @@ const ProposicaoCasaIdRoute = ProposicaoCasaIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
@@ -95,10 +108,12 @@ export interface FileRoutesByFullPath {
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
@@ -109,11 +124,13 @@ export interface FileRoutesByTo {
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
@@ -124,12 +141,14 @@ export interface FileRoutesById {
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
   '/proposicao/$casa/$id': typeof ProposicaoCasaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/coletas'
     | '/comparar'
     | '/compatibilidade'
     | '/metodologia'
@@ -140,10 +159,12 @@ export interface FileRouteTypes {
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/api/public/sync'
     | '/proposicao/$casa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/coletas'
     | '/comparar'
     | '/compatibilidade'
     | '/metodologia'
@@ -154,10 +175,12 @@ export interface FileRouteTypes {
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/api/public/sync'
     | '/proposicao/$casa/$id'
   id:
     | '__root__'
     | '/'
+    | '/coletas'
     | '/comparar'
     | '/compatibilidade'
     | '/metodologia'
@@ -168,11 +191,13 @@ export interface FileRouteTypes {
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
+    | '/api/public/sync'
     | '/proposicao/$casa/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ColetasRoute: typeof ColetasRoute
   CompararRoute: typeof CompararRoute
   CompatibilidadeRoute: typeof CompatibilidadeRoute
   MetodologiaRoute: typeof MetodologiaRoute
@@ -183,6 +208,7 @@ export interface RootRouteChildren {
   PartidoSiglaRoute: typeof PartidoSiglaRoute
   SenadorIdRoute: typeof SenadorIdRoute
   ApiPublicFotoRoute: typeof ApiPublicFotoRoute
+  ApiPublicSyncRoute: typeof ApiPublicSyncRoute
   ProposicaoCasaIdRoute: typeof ProposicaoCasaIdRoute
 }
 
@@ -193,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coletas': {
+      id: '/coletas'
+      path: '/coletas'
+      fullPath: '/coletas'
+      preLoaderRoute: typeof ColetasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comparar': {
@@ -265,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync': {
+      id: '/api/public/sync'
+      path: '/api/public/sync'
+      fullPath: '/api/public/sync'
+      preLoaderRoute: typeof ApiPublicSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proposicao/$casa/$id': {
       id: '/proposicao/$casa/$id'
       path: '/proposicao/$casa/$id'
@@ -277,6 +317,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ColetasRoute: ColetasRoute,
   CompararRoute: CompararRoute,
   CompatibilidadeRoute: CompatibilidadeRoute,
   MetodologiaRoute: MetodologiaRoute,
@@ -287,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartidoSiglaRoute: PartidoSiglaRoute,
   SenadorIdRoute: SenadorIdRoute,
   ApiPublicFotoRoute: ApiPublicFotoRoute,
+  ApiPublicSyncRoute: ApiPublicSyncRoute,
   ProposicaoCasaIdRoute: ProposicaoCasaIdRoute,
 }
 export const routeTree = rootRouteImport

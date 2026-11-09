@@ -8,7 +8,7 @@ import { ExploradorDespesas } from "@/components/graficos/Despesas";
 import { PainelVotos } from "@/components/graficos/Votos";
 import { GradeAtividade } from "@/components/graficos/Atividade";
 import { Desempenho, contar } from "@/components/graficos/Desempenho";
-import { rotuloVoto } from "@/lib/votos-label";
+import { naturezaVotoSenado, rotuloVoto } from "@/lib/votos-label";
 
 const q = (id: string) => queryOptions({ queryKey: ["sen", id], queryFn: () => detalheSenador({ data: { id } }), staleTime: 3600_000 });
 
@@ -52,7 +52,11 @@ function Sen() {
 
       <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" />
 
-      <GradeAtividade itens={data.votacoes.map((v) => ({ data: v.data, tipo: rotuloVoto(v.voto) || "Sem registro", titulo: v.materia, detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — ") }))} titulo="Atividade em votações nominais" legenda="votações" />
+      <GradeAtividade itens={data.votacoes.map((v) => ({
+        data: v.data, tipo: rotuloVoto(v.voto) || "Sem registro", titulo: v.materia,
+        detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — "),
+        natureza: naturezaVotoSenado(v.voto),
+      }))} titulo="Atividade em votações nominais" legenda="registros" filtroNatureza />
 
       <Desempenho
         indicadores={[

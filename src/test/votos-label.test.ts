@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ROTULO_VOTO, explicaVoto, rotuloVoto } from "@/lib/votos-label";
+import { ROTULO_VOTO, explicaVoto, naturezaVotoSenado, rotuloVoto } from "@/lib/votos-label";
 
 // Os códigos vêm do campo siglaVotoParlamentar e as descrições, do campo
 // descricaoVotoParlamentar, ambos da API de votações do Senado.
@@ -27,6 +27,14 @@ describe("Rótulos de voto", () => {
       expect(rotuloVoto(v)).toBe(v);
       expect(explicaVoto(v)).toBe("");
     }
+  });
+
+  it("separa não comparecimento de comparecimento e expediente", () => {
+    expect(naturezaVotoSenado("NCom")).toBe("nao-compareceu");
+    expect(naturezaVotoSenado("P-NRV")).toBe("comparecimento");
+    expect(naturezaVotoSenado("AP")).toBe("expediente");
+    expect(naturezaVotoSenado("MIS")).toBe("expediente");
+    expect(naturezaVotoSenado("LS")).toBeUndefined();
   });
 
   it("devolve vazio para quem não tem registro de voto", () => {

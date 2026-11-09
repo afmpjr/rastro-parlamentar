@@ -11,16 +11,20 @@ Métrica: pessoas que abrem o perfil de um parlamentar a cada semana.
 - [x] Comparar e participar: comparador lado a lado e teste de compatibilidade com votações reais.
 - [x] Conferir a origem: fontes oficiais, horário de coleta e explicação dos cálculos da plataforma.
 - [ ] Revisar os fluxos principais em celular e computador, incluindo carregamento, vazio, erro e navegação por teclado.
+- [ ] Priorizar melhorias visuais de UI/UX e responsividade com base nos perfis e gráficos atuais.
 - [ ] Conferir pontos ainda não validados: votos por período no perfil do senador e identificação dos projetos nas perguntas do teste.
 - [ ] Melhorar o filtro de situação da Câmara enquanto não houver banco: buscar dos mais antigos aos recentes ao selecionar "Arquivada".
-- [ ] Publicar o MVP e medir a estrela-guia.
+- [x] Agenda: filtro de comparecimento/expediente baseado exclusivamente em dados oficiais, inclusive no perfil do senador.
+- [x] Agenda: representar "Não compareceu" como categoria própria e visualmente distinta.
+- [ ] Investigar e corrigir a busca vazia ao filtrar projetos aprovados na Câmara.
+- [ ] Publicar o MVP somente quando o usuário decidir e medir a estrela-guia.
 
 **Critério de saída:** uma pessoa encontra seu representante, entende gastos e votos, abre a fonte oficial e compartilha o endereço sem depender de explicação externa.
 
 ## Fase 1 — base de dados e atualização diária
-- [ ] Ativar o Lovable Cloud e criar tabelas de parlamentares, despesas, fornecedores, proposições, votações e coletas.
-- [ ] Importar a legislatura atual e as despesas do ano atual e anterior, com URL, horário e hash de cada coleta.
-- [ ] Agendar sincronização diária protegida e registrar falhas sem apagar a última coleta válida.
+- [x] Ativar o Lovable Cloud e criar as primeiras tabelas de parlamentares, despesas, fornecedores e coletas.
+- [x] Importar parlamentares e despesas do ano atual e anterior, com URL, horário e hash de cada coleta.
+- [x] Agendar sincronização diária protegida e registrar falhas sem apagar a última coleta válida.
 - [ ] Migrar rankings e filtros globais para consultas no banco, mantendo os dados oficiais ao vivo como fallback quando fizer sentido.
 - [ ] Criar visão de saúde das coletas e testes das regras de atualização e acesso.
 
