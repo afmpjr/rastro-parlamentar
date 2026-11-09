@@ -8,6 +8,7 @@ import { Fontes, Selo } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
 import { Marcar, Segmentos } from "@/components/Controles";
 import { foto } from "@/lib/foto";
+import { rotuloVoto } from "@/lib/votos-label";
 
 type S = { casa: string; ano: number; ids: string };
 const ANO = new Date().getFullYear();
@@ -100,7 +101,7 @@ function Comparar() {
           </div>
           {secoes.map((sec) => sec.linhas.length > 0 && (
             <div key={sec.titulo}>
-              <h2 className="mt-6 flex items-center gap-2 pb-1 text-lg font-bold text-primary">{sec.titulo}{sec.titulo !== "Perfil" && <Selo tipo="calculo" explica="Contamos as votações nominais do plenário em que cada um registrou voto. Presença é a parte dessas votações em que votou. 'Segue o partido' compara o voto Sim/Não com o que a maioria da bancada votou. Concordância é a parte das votações em comum (os dois com Sim ou Não) em que votaram igual." />}</h2>
+              <h2 className="mt-6 flex items-center gap-2 pb-1 text-lg font-bold text-primary">{sec.titulo}{sec.titulo !== "Perfil" && <Selo tipo="calculo" explica="Contamos as votações nominais do plenário em que cada um registrou voto. Presença é a parte dessas votações em que votou. 'Segue o partido' compara o voto Sim/Não com o que a maioria da bancada votou. Concordância é a parte das votações em comum (os dois com Sim ou Não) em que votaram igual. Votos que não são Sim nem Não aparecem escritos por extenso, com a sigla oficial embaixo." />}</h2>
               {sec.linhas.map((l) => { const vs = slots.map((id) => l.v(id)); const cheios = vs.filter(Boolean); const difere = dif && cheios.length > 1 && new Set(cheios).size > 1; return (
                 <div key={l.rotulo} className={`${cols} border-t border-border py-2 text-sm ${difere ? "bg-highlight/40" : ""}`}>
                   <div className="font-semibold text-muted-foreground">{l.rotulo}</div>
@@ -131,7 +132,11 @@ function Comparar() {
                       {v.decidia && <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">Em votação: {v.decidia}</p>}
                       <p className="text-xs text-muted-foreground">{v.descricao}</p>
                     </td>
-                    {v.votos.map((x, i) => <td key={i} className={`pr-3 ${corVoto(x)}`}>{x || "—"}</td>)}
+                    {v.votos.map((x, i) => { const r = rotuloVoto(x); return (
+                      <td key={i} className={`pr-3 ${corVoto(x)}`}>
+                        {r || "—"}
+                        {r !== "" && r !== x && <span className="block text-[10px] font-normal text-muted-foreground">{x}</span>}
+                      </td>); })}
                   </tr>
                 ))}
               </tbody>

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Vote, ExternalLink, Check, X as XIcon } from "lucide-react";
 import { Selo } from "@/components/Fontes";
 import { contar } from "./Desempenho";
+import { rotuloVoto } from "@/lib/votos-label";
 
 export type VotoItem = { data: string; voto: string; titulo: string; descricao?: string; aprovada?: boolean | null; url?: string };
 
@@ -11,8 +12,8 @@ export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoIte
   const datas = votos.map((v) => v.data).sort();
   const [de, setDe] = useState(""); const [ate, setAte] = useState(""); const [voto, setVoto] = useState(""); const [n, setN] = useState(30);
   const noPeriodo = useMemo(() => votos.filter((v) => (!de || v.data >= de) && (!ate || v.data <= ate)), [votos, de, ate]);
-  const resumo = contar(noPeriodo.map((v) => v.voto || "Sem registro"));
-  const lista = voto ? noPeriodo.filter((v) => (v.voto || "Sem registro") === voto) : noPeriodo;
+  const resumo = contar(noPeriodo.map((v) => rotuloVoto(v.voto) || "Sem registro"));
+  const lista = voto ? noPeriodo.filter((v) => (rotuloVoto(v.voto) || "Sem registro") === voto) : noPeriodo;
   
   return (
     <section className="mt-12">
@@ -37,7 +38,7 @@ export function PainelVotos({ votos, carregando, erro, extra }: { votos: VotoIte
           {lista.slice(0, n).map((v, i) => (
             <li key={i} className="grid gap-1 py-3 text-sm md:grid-cols-[6rem_8rem_1fr]">
               <span className="text-muted-foreground">{v.data.split("-").reverse().join("/")}</span>
-              <span className="font-bold">{v.voto || "Sem registro"}</span>
+              <span className="font-bold">{rotuloVoto(v.voto) || "Sem registro"}</span>
               <div>
                 <p className="font-semibold">{v.url ? <a className="link-evidence inline-flex items-center gap-1" href={v.url} target="_blank" rel="noreferrer">{v.titulo}<ExternalLink className="h-3 w-3" aria-hidden /></a> : v.titulo}</p>
                 {v.descricao && <p className="text-muted-foreground">{v.descricao}</p>}

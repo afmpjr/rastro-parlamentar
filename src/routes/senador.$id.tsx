@@ -8,6 +8,7 @@ import { ExploradorDespesas } from "@/components/graficos/Despesas";
 import { PainelVotos } from "@/components/graficos/Votos";
 import { GradeAtividade } from "@/components/graficos/Atividade";
 import { Desempenho, contar } from "@/components/graficos/Desempenho";
+import { rotuloVoto } from "@/lib/votos-label";
 
 const q = (id: string) => queryOptions({ queryKey: ["sen", id], queryFn: () => detalheSenador({ data: { id } }), staleTime: 3600_000 });
 
@@ -23,10 +24,6 @@ export const Route = createFileRoute("/senador/$id")({
   component: Sen,
 });
 
-const SIGLAS: Record<string, string> = {
-  Votou: "Votou (secreta)", AP: "Atividade parlamentar", "P-NRV": "Presente, não votou", MIS: "Em missão", NA: "Não compareceu",
-  LS: "Licença saúde", LP: "Licença particular", Abstenção: "Abstenção", Obstrução: "Obstrução",
-};
 const h2 = "flex items-center gap-2 border-b-2 border-foreground pb-1 text-2xl font-bold";
 
 function Sen() {
@@ -55,7 +52,7 @@ function Sen() {
 
       <ExploradorDespesas despesas={data.despesas} titulo="Cota parlamentar (CEAPS)" />
 
-      <GradeAtividade itens={data.votacoes.map((v) => ({ data: v.data, tipo: SIGLAS[v.voto] ?? (v.voto || "Sem registro"), titulo: v.materia, detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — ") }))} titulo="Atividade em votações nominais" legenda="votações" />
+      <GradeAtividade itens={data.votacoes.map((v) => ({ data: v.data, tipo: rotuloVoto(v.voto) || "Sem registro", titulo: v.materia, detalhe: [v.descricao, v.resultado].filter(Boolean).join(" — ") }))} titulo="Atividade em votações nominais" legenda="votações" />
 
       <Desempenho
         indicadores={[
@@ -65,12 +62,12 @@ function Sen() {
           { rotulo: "Comissões ativas", valor: String(data.comissoes.length), icone: "tendencia" },
         ]}
         barras={{ titulo: "Matérias apresentadas por ano", dados: autoriasAno }}
-        pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => SIGLAS[v.voto] ?? (v.voto || "Sem registro"))) }}
+        pizza={{ titulo: "Votos registrados (todos)", dados: contar(data.votacoes.map((v) => rotuloVoto(v.voto) || "Sem registro")) }}
         explicaBarras="Contamos as matérias de autoria do senador pelo ano de apresentação, a partir da lista oficial de matérias de autoria."
         explicaPizza="Contamos os votos registrados em plenário por tipo de voto e mostramos a fatia de cada tipo no total de votações."
       />
 
-      <PainelVotos votos={data.votacoes.map((v) => ({ data: v.data, voto: SIGLAS[v.voto] ?? (v.voto || "Sem registro"), titulo: v.materia, descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "), aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null }))} />
+      <PainelVotos votos={data.votacoes.map((v) => ({ data: v.data, voto: rotuloVoto(v.voto), titulo: v.materia, descricao: [v.ementa, v.descricao].filter(Boolean).join(" — "), aprovada: /aprovad/i.test(v.resultado) ? true : /rejeitad/i.test(v.resultado) ? false : null }))} />
 
       <section className="mt-12">
         <h2 className={h2}><Landmark className="h-6 w-6" aria-hidden />Mandatos</h2>
@@ -83,7 +80,7 @@ function Sen() {
           <li key={i} className="grid grid-cols-[6rem_1fr_6rem] gap-3 py-2 text-sm">
             <span className="text-muted-foreground">{v.data}</span>
             <span><b>{v.materia}</b> — {v.descricao || v.ementa}{v.resultado && <span className="text-muted-foreground"> · {v.resultado}</span>}</span>
-            <span className="text-right font-bold">{v.voto || "—"}</span>
+            <span className="text-right font-bold">{rotuloVoto(v.voto) || "—"}</span>
           </li>))}
           {data.votacoes.length === 0 && <li className="py-2 text-muted-foreground">Fonte não retornou votações.</li>}</ul>
       </section>
