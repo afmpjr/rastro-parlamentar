@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, FileText, Hourglass } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, FileText, Hourglass, Loader2, AlertTriangle } from "lucide-react";
 import { buscarProposicoes, temasCamara, type Busca } from "@/lib/proposicoes.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
@@ -52,6 +52,7 @@ function Pagina() {
   const [f, setF] = useState(s);
   const { data } = useSuspenseQuery({ ...busca(s), initialData: Route.useLoaderData() });
   const temas = useQuery({ queryKey: ["temas"], queryFn: () => temasCamara(), staleTime: 86400_000, enabled: f.casa === "camara" });
+  const buscando = useRouterState({ select: (r) => r.status === "pending" || r.isLoading });
   const set = (k: keyof Busca) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const ir = (p: Partial<Busca>) => nav({ search: { ...f, ...p } });
   return (
@@ -71,10 +72,15 @@ function Pagina() {
           <Escolha rotulo="Situação" value={f.tramitando} onChange={(v) => setF({ ...f, tramitando: v })} opcoes={[{ v: "", l: "Qualquer situação" }, { v: "S", l: "Em tramitação" }, { v: "N", l: "Encerradas" }]} />
         )}
         <Escolha rotulo="Situação do projeto" value={f.grupo} onChange={(v) => setF({ ...f, grupo: v })} opcoes={[{ v: "", l: "Toda situação" }, ...(Object.keys(GRUPOS) as Grupo[]).filter((g) => g !== "desconhecida").map((g) => ({ v: g, l: GRUPOS[g].rotulo }))]} />
-        <button className="flex items-center justify-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground md:col-span-5 md:justify-self-start"><Search className="h-4 w-4" aria-hidden />Buscar</button>
+        <div className="flex items-center gap-3 md:col-span-5" aria-live="polite">
+          <button disabled={buscando} className="flex items-center justify-center gap-2 bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-70">{buscando ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Search className="h-4 w-4" aria-hidden />}{buscando ? "Buscando…" : "Buscar"}</button>
+          {buscando && <span className="text-sm text-muted-foreground">{f.grupo ? "Consultando a Câmara e verificando a situação de cada proposição — pode levar alguns segundos." : "Consultando a fonte oficial…"}</span>}
+        </div>
       </form>
+      {data.erro && <p role="alert" className="mt-6 flex items-center gap-2 border border-destructive px-3 py-2 text-sm text-destructive"><AlertTriangle className="h-4 w-4" aria-hidden />{data.erro}</p>}
+      <div className={buscando ? "pointer-events-none opacity-50 transition-opacity" : "transition-opacity"} aria-busy={buscando}>
       <p className="mt-6 text-sm text-muted-foreground">
-        {data.erro || (data.filtradoNaPagina ? `${data.itens.length} de ${data.filtradoNaPagina} proposições desta página estão em "${GRUPOS[s.grupo as Grupo]?.rotulo}" · página ${s.pagina} de ${Math.max(1, data.paginas)} (${(data.total ?? 0).toLocaleString("pt-BR")} no total, sem o filtro de situação). A Câmara não permite filtrar por situação na origem, então o filtro é aplicado página a página.` : `${(data.total ?? 0).toLocaleString("pt-BR")} resultado(s) · página ${s.pagina} de ${Math.max(1, data.paginas)}`)}
+        {data.erro ? "" : (data.filtradoNaPagina ? `${data.itens.length} de ${data.filtradoNaPagina} proposições desta página estão em "${GRUPOS[s.grupo as Grupo]?.rotulo}" · página ${s.pagina} de ${Math.max(1, data.paginas)} (${(data.total ?? 0).toLocaleString("pt-BR")} no total, sem o filtro de situação). A Câmara não permite filtrar por situação na origem, então o filtro é aplicado página a página.` : `${(data.total ?? 0).toLocaleString("pt-BR")} resultado(s) · página ${s.pagina} de ${Math.max(1, data.paginas)}`)}
         {!s.ano && !s.numero && s.casa === "senado" && !s.q && !s.autor && !s.tipo ? " Sem filtros, mostramos as do ano atual." : ""}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
@@ -105,6 +111,8 @@ function Pagina() {
         <span className="text-sm">Página {s.pagina} de {Math.max(1, data.paginas)} · {(data.total ?? 0).toLocaleString("pt-BR")} resultados</span>
         <button disabled={!data.temMais} onClick={() => nav({ search: { ...s, pagina: s.pagina + 1 } })} className="flex items-center gap-1 border border-input px-3 py-1 disabled:opacity-40">Próxima<ChevronRight className="h-4 w-4" aria-hidden /></button>
         <button disabled={!data.temMais} onClick={() => nav({ search: { ...s, pagina: data.paginas } })} aria-label="Última página" className="border border-input px-2 py-1 disabled:opacity-40"><ChevronsRight className="h-4 w-4" aria-hidden /></button>
+      </div>
+      {!data.erro && data.itens.length === 0 && <p className="py-6 text-sm text-muted-foreground">Nenhuma proposição encontrada{s.grupo ? ` em "${GRUPOS[s.grupo as Grupo]?.rotulo}" nesta página. Use "Próxima" para examinar as seguintes.` : " com esses filtros."}</p>}
       </div>
       <Fontes fontes={data.fontes} />
     </div>

@@ -60,7 +60,7 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
         // examina as próximas páginas até achar resultados (limite de 5 por consulta).
         if (b.grupo && !todos.some((x) => grupoSituacao(x.situacao) === b.grupo)) {
           for (let salto = 1; salto <= 1; salto++) {
-            const proxima = ["arquivada", "aprovada", "encerrada"].includes(b.grupo) ? b.pagina - salto : b.pagina + salto;
+            const proxima = b.pagina + salto;
             if (proxima < 1 || proxima > ultima) break;
             const u = new URL(url); u.searchParams.set("pagina", String(proxima));
             const r2 = await getJson(u.toString());
@@ -72,7 +72,7 @@ export const buscarProposicoes = createServerFn({ method: "GET" })
         }
         const itens = b.grupo ? todos.filter((x) => grupoSituacao(x.situacao) === b.grupo).slice(0, 20) : todos;
         const porPg = b.grupo ? 50 : POR;
-        const temMais = ["arquivada", "aprovada", "encerrada"].includes(b.grupo) ? b.pagina > 1 : !!r.links?.some((l: any) => l.rel === "next");
+        const temMais = !!r.links?.some((l: any) => l.rel === "next");
         const total = ultima > b.pagina ? (ultima - 1) * porPg + (ultimaPg as number) : (b.pagina - 1) * porPg + r.dados.length;
         return { itens, total: total as number | null, paginas: Math.max(ultima, b.pagina), temMais, filtradoNaPagina: b.grupo ? examinadas : 0, erro: "", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] };
       } catch { return { itens: [] as ItemBusca[], total: null, paginas: 0, temMais: false, filtradoNaPagina: 0, erro: "A Câmara não respondeu. Tente de novo ou com menos filtros.", fontes: [fonte("Câmara dos Deputados — Dados Abertos", url)] }; }
