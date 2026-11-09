@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CompararRouteImport } from './routes/comparar'
+import { Route as CompatibilidadeRouteImport } from './routes/compatibilidade'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
 import { Route as ProposicoesRouteImport } from './routes/proposicoes'
@@ -21,6 +23,16 @@ import { Route as ProposicaoCasaIdRouteImport } from './routes/proposicao.$casa.
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompararRoute = CompararRouteImport.update({
+  id: '/comparar',
+  path: '/comparar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompatibilidadeRoute = CompatibilidadeRouteImport.update({
+  id: '/compatibilidade',
+  path: '/compatibilidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
@@ -61,6 +73,8 @@ const ProposicaoCasaIdRoute = ProposicaoCasaIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/comparar': typeof CompararRoute
+  '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/comparar': typeof CompararRoute
+  '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
@@ -82,6 +98,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/comparar': typeof CompararRoute
+  '/compatibilidade': typeof CompatibilidadeRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
@@ -94,6 +112,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/comparar'
+    | '/compatibilidade'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
@@ -104,6 +124,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/comparar'
+    | '/compatibilidade'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
@@ -114,6 +136,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/comparar'
+    | '/compatibilidade'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
@@ -125,6 +149,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompararRoute: typeof CompararRoute
+  CompatibilidadeRoute: typeof CompatibilidadeRoute
   MetodologiaRoute: typeof MetodologiaRoute
   ParlamentaresRoute: typeof ParlamentaresRoute
   ProposicoesRoute: typeof ProposicoesRoute
@@ -141,6 +167,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparar': {
+      id: '/comparar'
+      path: '/comparar'
+      fullPath: '/comparar'
+      preLoaderRoute: typeof CompararRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compatibilidade': {
+      id: '/compatibilidade'
+      path: '/compatibilidade'
+      fullPath: '/compatibilidade'
+      preLoaderRoute: typeof CompatibilidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metodologia': {
@@ -197,6 +237,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompararRoute: CompararRoute,
+  CompatibilidadeRoute: CompatibilidadeRoute,
   MetodologiaRoute: MetodologiaRoute,
   ParlamentaresRoute: ParlamentaresRoute,
   ProposicoesRoute: ProposicoesRoute,
