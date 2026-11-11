@@ -18,7 +18,7 @@ export const Route = createFileRoute("/governadores")({
   ] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(q),
   component: Pagina,
-  errorComponent: ({ error }) => <p role="alert" className="mx-auto max-w-6xl px-4 py-10 text-destructive">Não foi possível carregar os dados da Justiça Eleitoral: {error.message}</p>,
+  errorComponent: ({ error }) => <p role="alert" className="mx-auto max-w-6xl px-4 py-10 text-destructive">Não foi possível carregar os dados da Justiça Eleitoral: {(error as Error).message}</p>,
   pendingComponent: () => <p className="mx-auto max-w-6xl px-4 py-10 text-muted-foreground">Lendo os arquivos oficiais do TSE…</p>,
 });
 
@@ -47,7 +47,7 @@ function Pagina() {
               <Link to="/governador/$uf" params={{ uf: g.uf }} className="block h-full border border-border p-4 transition hover:border-foreground">
                 <div className="flex items-start justify-between gap-2">
                   <span className="label-caps">{NOMES_UF[g.uf] ?? g.uf}</span>
-                  {"reeleito" in g && g.reeleito && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><RotateCcw className="h-3 w-3" aria-hidden />Reeleito</span>}
+                  {"reeleito" in g && !!g.reeleito && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><RotateCcw className="h-3 w-3" aria-hidden />Reeleito</span>}
                 </div>
                 <p className="mt-1 font-display text-xl font-bold">{g.nomeUrna}</p>
                 <p className="text-sm">{g.partido}{g.vice && <span className="text-muted-foreground"> · vice {g.vice.nome} ({g.vice.partido})</span>}</p>

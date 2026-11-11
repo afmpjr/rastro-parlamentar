@@ -20,7 +20,7 @@ export const Route = createFileRoute("/governador/$uf")({
   },
   loader: ({ context, params }) => context.queryClient.ensureQueryData(q(params.uf.toUpperCase())),
   component: Pagina,
-  errorComponent: ({ error }) => <p role="alert" className="mx-auto max-w-6xl px-4 py-10 text-destructive">Não foi possível carregar os dados da Justiça Eleitoral: {error.message}</p>,
+  errorComponent: ({ error }) => <p role="alert" className="mx-auto max-w-6xl px-4 py-10 text-destructive">Não foi possível carregar os dados da Justiça Eleitoral: {(error as Error).message}</p>,
   pendingComponent: () => <p className="mx-auto max-w-6xl px-4 py-10 text-muted-foreground">Lendo os arquivos oficiais do TSE…</p>,
 });
 
