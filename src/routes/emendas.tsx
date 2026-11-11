@@ -9,7 +9,7 @@ import { brl } from "@/lib/ufs";
 const q = (f: FiltroEmendas) => queryOptions({ queryKey: ["emendas", f], queryFn: () => buscarEmendas({ data: f }), staleTime: 3600_000 });
 
 export const Route = createFileRoute("/emendas")({
-  validateSearch: (s: Record<string, unknown>): FiltroEmendas => ({ ano: Number(s.ano) || 0, uf: String(s.uf ?? ""), municipio: String(s.municipio ?? ""), autor: String(s.autor ?? "") }),
+  validateSearch: (s: Record<string, unknown>): FiltroEmendas => ({ ano: Number(s["ano"]) || 0, uf: String(s["uf"] ?? ""), municipio: String(s["municipio"] ?? ""), autor: String(s["autor"] ?? "") }),
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(q(deps)),
   head: () => ({ meta: [
