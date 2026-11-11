@@ -49,5 +49,8 @@ Métrica: pessoas que abrem o perfil de um parlamentar a cada semana.
 
 ## Depois — somente com nova priorização
 - [ ] Dúvidas sobre votações com IA (adiado pelo usuário; só com respostas ancoradas nas fontes oficiais).
+- [x] Governadores: mandato atual e eleitos em 2026, vice, coligação e bens declarados (TSE).
+- [ ] Governadores: contas do estado (Tesouro/Siconfi) e emendas recebidas.
+- [ ] Prefeitos.
 - [ ] Contratos, emendas, transferências, estados e municípios.
 - [ ] Alertas, favoritos e outras funcionalidades que exijam contas de usuário.

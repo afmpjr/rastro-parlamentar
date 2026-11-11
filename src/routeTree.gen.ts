@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ColetasRouteImport } from './routes/coletas'
 import { Route as CompararRouteImport } from './routes/comparar'
 import { Route as CompatibilidadeRouteImport } from './routes/compatibilidade'
+import { Route as GovernadoresRouteImport } from './routes/governadores'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
 import { Route as ProposicoesRouteImport } from './routes/proposicoes'
 import { Route as DeputadoIdRouteImport } from './routes/deputado.$id'
 import { Route as EstadoUfRouteImport } from './routes/estado.$uf'
+import { Route as GovernadorUfRouteImport } from './routes/governador.$uf'
 import { Route as PartidoSiglaRouteImport } from './routes/partido.$sigla'
 import { Route as SenadorIdRouteImport } from './routes/senador.$id'
 import { Route as ApiPublicFotoRouteImport } from './routes/api/public/foto'
@@ -44,6 +46,11 @@ const CompatibilidadeRoute = CompatibilidadeRouteImport.update({
   path: '/compatibilidade',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GovernadoresRoute = GovernadoresRouteImport.update({
+  id: '/governadores',
+  path: '/governadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MetodologiaRoute = MetodologiaRouteImport.update({
   id: '/metodologia',
   path: '/metodologia',
@@ -67,6 +74,11 @@ const DeputadoIdRoute = DeputadoIdRouteImport.update({
 const EstadoUfRoute = EstadoUfRouteImport.update({
   id: '/estado/$uf',
   path: '/estado/$uf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernadorUfRoute = GovernadorUfRouteImport.update({
+  id: '/governador/$uf',
+  path: '/governador/$uf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartidoSiglaRoute = PartidoSiglaRouteImport.update({
@@ -100,11 +112,13 @@ export interface FileRoutesByFullPath {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/estado/$uf': typeof EstadoUfRoute
+  '/governador/$uf': typeof GovernadorUfRoute
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
@@ -116,11 +130,13 @@ export interface FileRoutesByTo {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/estado/$uf': typeof EstadoUfRoute
+  '/governador/$uf': typeof GovernadorUfRoute
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
@@ -133,11 +149,13 @@ export interface FileRoutesById {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
   '/proposicoes': typeof ProposicoesRoute
   '/deputado/$id': typeof DeputadoIdRoute
   '/estado/$uf': typeof EstadoUfRoute
+  '/governador/$uf': typeof GovernadorUfRoute
   '/partido/$sigla': typeof PartidoSiglaRoute
   '/senador/$id': typeof SenadorIdRoute
   '/api/public/foto': typeof ApiPublicFotoRoute
@@ -151,11 +169,13 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/governadores'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
     | '/estado/$uf'
+    | '/governador/$uf'
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
@@ -167,11 +187,13 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/governadores'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
     | '/estado/$uf'
+    | '/governador/$uf'
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
@@ -183,11 +205,13 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/governadores'
     | '/metodologia'
     | '/parlamentares'
     | '/proposicoes'
     | '/deputado/$id'
     | '/estado/$uf'
+    | '/governador/$uf'
     | '/partido/$sigla'
     | '/senador/$id'
     | '/api/public/foto'
@@ -200,11 +224,13 @@ export interface RootRouteChildren {
   ColetasRoute: typeof ColetasRoute
   CompararRoute: typeof CompararRoute
   CompatibilidadeRoute: typeof CompatibilidadeRoute
+  GovernadoresRoute: typeof GovernadoresRoute
   MetodologiaRoute: typeof MetodologiaRoute
   ParlamentaresRoute: typeof ParlamentaresRoute
   ProposicoesRoute: typeof ProposicoesRoute
   DeputadoIdRoute: typeof DeputadoIdRoute
   EstadoUfRoute: typeof EstadoUfRoute
+  GovernadorUfRoute: typeof GovernadorUfRoute
   PartidoSiglaRoute: typeof PartidoSiglaRoute
   SenadorIdRoute: typeof SenadorIdRoute
   ApiPublicFotoRoute: typeof ApiPublicFotoRoute
@@ -242,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompatibilidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/governadores': {
+      id: '/governadores'
+      path: '/governadores'
+      fullPath: '/governadores'
+      preLoaderRoute: typeof GovernadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/metodologia': {
       id: '/metodologia'
       path: '/metodologia'
@@ -275,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/estado/$uf'
       fullPath: '/estado/$uf'
       preLoaderRoute: typeof EstadoUfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governador/$uf': {
+      id: '/governador/$uf'
+      path: '/governador/$uf'
+      fullPath: '/governador/$uf'
+      preLoaderRoute: typeof GovernadorUfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partido/$sigla': {
@@ -320,11 +360,13 @@ const rootRouteChildren: RootRouteChildren = {
   ColetasRoute: ColetasRoute,
   CompararRoute: CompararRoute,
   CompatibilidadeRoute: CompatibilidadeRoute,
+  GovernadoresRoute: GovernadoresRoute,
   MetodologiaRoute: MetodologiaRoute,
   ParlamentaresRoute: ParlamentaresRoute,
   ProposicoesRoute: ProposicoesRoute,
   DeputadoIdRoute: DeputadoIdRoute,
   EstadoUfRoute: EstadoUfRoute,
+  GovernadorUfRoute: GovernadorUfRoute,
   PartidoSiglaRoute: PartidoSiglaRoute,
   SenadorIdRoute: SenadorIdRoute,
   ApiPublicFotoRoute: ApiPublicFotoRoute,

@@ -7,6 +7,7 @@ function Links({ aoNavegar }: { aoNavegar?: () => void }) {
     <>
       <Link to="/parlamentares" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Parlamentares</Link>
       <Link to="/proposicoes" onClick={aoNavegar} search={{ casa: "camara", q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", grupo: "", pagina: 1 }} activeProps={{ className: "text-primary" }}>Projetos</Link>
+      <Link to="/governadores" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Governadores</Link>
       <Link to="/comparar" onClick={aoNavegar} search={{ casa: "camara", ano: new Date().getFullYear(), ids: "" }} activeProps={{ className: "text-primary" }}>Comparar</Link>
       <Link to="/compatibilidade" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Teste</Link>
       <Link to="/coletas" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Atualizações</Link>
