@@ -15,7 +15,7 @@ export const buscarEmendas = createServerFn({ method: "GET" })
     const m = norm(data.municipio), a = norm(data.autor);
     const sel = todas.filter((l) => l[0] === ano && (!data.uf || l[4] === data.uf) && (!m || norm(l[3]).includes(m)) && (!a || norm(l[2]).includes(a)));
     const agrupa = (i: number, n = 10) => [...sel.reduce((mp, l) => {
-      const k = l[i] || "Sem informação"; const v = mp.get(k) ?? { nome: k, empenhado: 0, pago: 0, qtd: 0 };
+      const k = String(l[i] || "Sem informação"); const v = mp.get(k) ?? { nome: k, empenhado: 0, pago: 0, qtd: 0 };
       v.empenhado += l[6]; v.pago += l[7]; v.qtd++; return mp.set(k, v);
     }, new Map<string, { nome: string; empenhado: number; pago: number; qtd: number }>()).values()].sort((x, y) => y.empenhado - x.empenhado).slice(0, n);
     const fontes: Fonte[] = [{ orgao: "Portal da Transparência (CGU) · emendas parlamentares", url: URL_EMENDAS, coletadoEm: new Date().toISOString() }];
