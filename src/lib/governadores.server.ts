@@ -29,14 +29,14 @@ function campos(l: string) {
 }
 
 /** Lê todos os CSVs do ZIP oficial em fluxo, linha a linha. */
-async function lerZip(url: string, linha: (g: (n: string) => string) => void) {
+export async function lerZip(url: string, linha: (g: (n: string) => string) => void, aceita: (nome: string) => boolean = (n) => n.endsWith(".csv") && !/BRASIL/i.test(n)) {
   const r = await fetch(url);
-  if (!r.ok || !r.body) throw new Error(`TSE respondeu ${r.status} em ${url}`);
+  if (!r.ok || !r.body) throw new Error(`Fonte respondeu ${r.status} em ${url}`);
   await new Promise<void>((resolve, reject) => {
     let pend = 0, fimEntrada = false;
     const talvezFim = () => { if (fimEntrada && pend === 0) resolve(); };
     const uz = new Unzip((f) => {
-      if (!f.name.endsWith(".csv") || /BRASIL/i.test(f.name)) { f.ondata = () => {}; f.start(); return; }
+      if (!aceita(f.name)) { f.ondata = () => {}; f.start(); return; }
       pend++;
       let cab: string[] | null = null, resto = "";
       f.ondata = (err, chunk, final) => {

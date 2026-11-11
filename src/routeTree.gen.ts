@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ColetasRouteImport } from './routes/coletas'
 import { Route as CompararRouteImport } from './routes/comparar'
 import { Route as CompatibilidadeRouteImport } from './routes/compatibilidade'
+import { Route as EmendasRouteImport } from './routes/emendas'
 import { Route as GovernadoresRouteImport } from './routes/governadores'
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as ParlamentaresRouteImport } from './routes/parlamentares'
@@ -44,6 +45,11 @@ const CompararRoute = CompararRouteImport.update({
 const CompatibilidadeRoute = CompatibilidadeRouteImport.update({
   id: '/compatibilidade',
   path: '/compatibilidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmendasRoute = EmendasRouteImport.update({
+  id: '/emendas',
+  path: '/emendas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GovernadoresRoute = GovernadoresRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/emendas': typeof EmendasRoute
   '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/emendas': typeof EmendasRoute
   '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/coletas': typeof ColetasRoute
   '/comparar': typeof CompararRoute
   '/compatibilidade': typeof CompatibilidadeRoute
+  '/emendas': typeof EmendasRoute
   '/governadores': typeof GovernadoresRoute
   '/metodologia': typeof MetodologiaRoute
   '/parlamentares': typeof ParlamentaresRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/emendas'
     | '/governadores'
     | '/metodologia'
     | '/parlamentares'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/emendas'
     | '/governadores'
     | '/metodologia'
     | '/parlamentares'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/coletas'
     | '/comparar'
     | '/compatibilidade'
+    | '/emendas'
     | '/governadores'
     | '/metodologia'
     | '/parlamentares'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   ColetasRoute: typeof ColetasRoute
   CompararRoute: typeof CompararRoute
   CompatibilidadeRoute: typeof CompatibilidadeRoute
+  EmendasRoute: typeof EmendasRoute
   GovernadoresRoute: typeof GovernadoresRoute
   MetodologiaRoute: typeof MetodologiaRoute
   ParlamentaresRoute: typeof ParlamentaresRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/compatibilidade'
       fullPath: '/compatibilidade'
       preLoaderRoute: typeof CompatibilidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emendas': {
+      id: '/emendas'
+      path: '/emendas'
+      fullPath: '/emendas'
+      preLoaderRoute: typeof EmendasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/governadores': {
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   ColetasRoute: ColetasRoute,
   CompararRoute: CompararRoute,
   CompatibilidadeRoute: CompatibilidadeRoute,
+  EmendasRoute: EmendasRoute,
   GovernadoresRoute: GovernadoresRoute,
   MetodologiaRoute: MetodologiaRoute,
   ParlamentaresRoute: ParlamentaresRoute,
