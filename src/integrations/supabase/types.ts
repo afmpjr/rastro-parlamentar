@@ -103,6 +103,45 @@ export type Database = {
           },
         ]
       }
+      emendas: {
+        Row: {
+          ano: number
+          autor: string
+          empenhado: number
+          funcao: string
+          id: number
+          municipio: string
+          pago: number
+          qtd: number
+          tipo: string
+          uf: string
+        }
+        Insert: {
+          ano: number
+          autor: string
+          empenhado: number
+          funcao: string
+          id?: never
+          municipio: string
+          pago: number
+          qtd: number
+          tipo: string
+          uf: string
+        }
+        Update: {
+          ano?: number
+          autor?: string
+          empenhado?: number
+          funcao?: string
+          id?: never
+          municipio?: string
+          pago?: number
+          qtd?: number
+          tipo?: string
+          uf?: string
+        }
+        Relationships: []
+      }
       fornecedores: {
         Row: {
           atualizado_em: string
