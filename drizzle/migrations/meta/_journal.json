@@ -8,6 +8,13 @@
       "when": 1794246760664,
       "tag": "0000_base_parlamentares_despesas_proveniencia",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794391105677,
+      "tag": "0001_restrict_public_data_tables",
+      "breakpoints": true
     }
   ]
 }
