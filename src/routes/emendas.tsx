@@ -20,7 +20,7 @@ export const Route = createFileRoute("/emendas")({
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
   component: Pagina,
-  pendingComponent: () => <p className="py-10 text-muted-foreground">Lendo o arquivo oficial do Portal da Transparência…</p>,
+  pendingComponent: () => <p className="py-10 text-muted-foreground">Carregando as emendas…</p>,
   errorComponent: ({ error }) => <p role="alert" className="py-10 text-destructive">Não foi possível ler o Portal da Transparência: {(error as Error).message}</p>,
   notFoundComponent: () => <p className="py-10">Nada encontrado.</p>,
 });

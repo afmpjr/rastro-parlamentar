@@ -3,7 +3,7 @@ import { z } from "zod";
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 
 const Entrada = z.object({
-  etapa: z.enum(["diaria", "parlamentares", "camara", "senado"]).default("diaria"),
+  etapa: z.enum(["diaria", "parlamentares", "camara", "senado", "emendas"]).default("diaria"),
   ano: z.number().int().min(2019).max(2100).optional(),
 });
 
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/api/public/sync")({
           const resultado = entrada.etapa === "diaria" ? await sync.sincronizarDiario()
             : entrada.etapa === "parlamentares" ? await sync.sincronizarParlamentares()
             : entrada.etapa === "camara" ? await sync.sincronizarCeap(ano)
+            : entrada.etapa === "emendas" ? await sync.sincronizarEmendas()
             : await sync.sincronizarCeaps(ano);
           return Response.json({ sucesso: true, resultado });
         } catch (e) {

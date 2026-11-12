@@ -1,23 +1,22 @@
 import { lerZip } from "./governadores.server";
 
 export const URL_EMENDAS = "https://portaldatransparencia.gov.br/download-de-dados/emendas-parlamentares/UNICO";
-const URL_ZIP = "https://dadosabertos-download.cgu.gov.br/PortalDaTransparencia/saida/emendas-parlamentares/EmendasParlamentares.zip";
+export const URL_ZIP = "https://dadosabertos-download.cgu.gov.br/PortalDaTransparencia/saida/emendas-parlamentares/EmendasParlamentares.zip";
 
-/** [ano, tipo, autor, município, uf, função, empenhado, pago] */
-export type Linha = [number, string, string, string, string, string, number, number];
+export type Resumo = { ano: number; tipo: string; autor: string; municipio: string; uf: string; funcao: string; qtd: number; empenhado: number; pago: number };
 const num = (s: string) => Number(s.replace(/\./g, "").replace(",", ".")) || 0;
-let cache: { t: number; p: Promise<Linha[]> } | null = null;
 
-export function emendas(): Promise<Linha[]> {
-  if (cache && Date.now() - cache.t < 12 * 3600_000) return cache.p;
-  const p = (async () => {
-    const out: Linha[] = [];
-    await lerZip(URL_ZIP, (g) => {
-      out.push([Number(g("Ano da Emenda")), g("Tipo de Emenda"), g("Nome do Autor da Emenda"), g("Município"), g("UF"), g("Nome Função"), num(g("Valor Empenhado")), num(g("Valor Pago"))]);
-    }, (n) => n === "EmendasParlamentares.csv");
-    return out;
-  })();
-  p.catch(() => { cache = null; });
-  cache = { t: Date.now(), p };
-  return p;
+/** Baixa o arquivo oficial e soma as emendas por ano, tipo, autor, município, UF e área. */
+export async function baixarResumo(): Promise<Resumo[]> {
+  const mapa = new Map<string, Resumo>();
+  await lerZip(URL_ZIP, (g) => {
+    const ano = Number(g("Ano da Emenda"));
+    if (!ano) return;
+    const r = { ano, tipo: g("Tipo de Emenda"), autor: g("Nome do Autor da Emenda"), municipio: g("Município"), uf: g("UF"), funcao: g("Nome Função") };
+    const k = Object.values(r).join("|");
+    const v = mapa.get(k) ?? { ...r, qtd: 0, empenhado: 0, pago: 0 };
+    v.qtd++; v.empenhado += num(g("Valor Empenhado")); v.pago += num(g("Valor Pago"));
+    mapa.set(k, v);
+  }, (n) => n === "EmendasParlamentares.csv");
+  return [...mapa.values()].map((v) => ({ ...v, empenhado: Math.round(v.empenhado * 100) / 100, pago: Math.round(v.pago * 100) / 100 }));
 }

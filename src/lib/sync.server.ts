@@ -174,6 +174,21 @@ export async function sincronizarCeaps(ano: number) {
   }
 }
 
+export async function sincronizarEmendas() {
+  const { baixarResumo, URL_EMENDAS } = await import("./emendas.server");
+  const coleta = await iniciar("emendas", URL_EMENDAS);
+  try {
+    const linhas = await baixarResumo();
+    if (linhas.length < 1000) throw new Error("Arquivo de emendas veio incompleto");
+    const db = await admin();
+    const { data: max } = await db.from("emendas").select("id").order("id", { ascending: false }).limit(1).maybeSingle();
+    await emLotes(linhas, 2000, async (lote) => { const { error } = await db.from("emendas").insert(lote); if (error) throw error; });
+    if (max) { const { error } = await db.from("emendas").delete().lte("id", max.id); if (error) throw error; }
+    await terminar(coleta, "sucesso", linhas.length, hash(linhas.length + ":" + linhas.reduce((s, l) => s + l.empenhado, 0)), "Emendas parlamentares (resumo por autor, município e área)");
+    return { registros: linhas.length };
+  } catch (e) { await terminar(coleta, "erro", 0, null, erro(e)); throw e; }
+}
+
 export async function sincronizarDiario() {
   const ano = new Date().getFullYear();
   // Sequencial: respeita o limite de conexões e mantém a última coleta válida se uma fonte falhar.

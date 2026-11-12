@@ -198,7 +198,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      resumo_emendas: {
+        Args: {
+          p_ano: number
+          p_autor: string
+          p_municipio: string
+          p_uf: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
