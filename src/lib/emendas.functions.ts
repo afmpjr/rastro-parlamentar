@@ -18,10 +18,29 @@ export const buscarEmendas = createServerFn({ method: "GET" })
     if (error) { console.error("Falha ao ler emendas", error); throw new Error("Não foi possível ler as emendas guardadas."); }
     const res = r as { ano: number; anos: number[]; ufs: string[]; qtd: number; empenhado: number; pago: number; grupos: Record<string, Grupo[]> };
     const g = (k: string) => (res.grupos?.[k] ?? []).map((x) => ({ ...x, empenhado: Number(x.empenhado), pago: Number(x.pago), qtd: Number(x.qtd) }));
+    // Todas as áreas (o resumo traz só as maiores); somadas aqui com os mesmos filtros.
+    const linhas: { funcao: string; municipio: string; autor: string; empenhado: number; pago: number; qtd: number }[] = [];
+    for (let de = 0; ; de += 1000) {
+      let qy = db.from("emendas").select("funcao,municipio,autor,empenhado,pago,qtd").eq("ano", res.ano).range(de, de + 999);
+      if (data.uf) qy = qy.eq("uf", data.uf);
+      const { data: pg, error: e2 } = await qy;
+      if (e2) { console.error("Falha ao ler áreas", e2); break; }
+      linhas.push(...(pg ?? []));
+      if (!pg || pg.length < 1000) break;
+    }
+    const pm = norm(data.municipio), pa = norm(data.autor), mapa = new Map<string, Grupo>();
+    for (const l of linhas) {
+      if (pm && !norm(l.municipio).includes(pm)) continue;
+      if (pa && !norm(l.autor).includes(pa)) continue;
+      const nome = l.funcao || "Sem informação";
+      const v = mapa.get(nome) ?? { nome, empenhado: 0, pago: 0, qtd: 0 };
+      v.empenhado += Number(l.empenhado); v.pago += Number(l.pago); v.qtd += Number(l.qtd); mapa.set(nome, v);
+    }
+    const areas = mapa.size ? [...mapa.values()].sort((a, b) => b.empenhado - a.empenhado) : g("areas");
     const fontes: Fonte[] = [{ orgao: "Portal da Transparência (CGU) · emendas parlamentares", url: URL_EMENDAS, coletadoEm: coleta?.concluido_em ?? new Date().toISOString() }];
     return {
       ano: res.ano, anos: res.anos ?? [], ufs: res.ufs ?? [], fontes, qtd: Number(res.qtd),
       empenhado: Number(res.empenhado), pago: Number(res.pago),
-      autores: g("autores"), municipios: g("municipios"), areas: g("areas"), tipos: g("tipos"),
+      autores: g("autores"), municipios: g("municipios"), areas, tipos: g("tipos"),
     };
   });

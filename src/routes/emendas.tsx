@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Pin, PinOff } from "lucide-react";
 import { buscarEmendas, type FiltroEmendas } from "@/lib/emendas.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
@@ -26,24 +27,37 @@ export const Route = createFileRoute("/emendas")({
 });
 
 type Grupo = { nome: string; empenhado: number; pago: number; qtd: number };
-function Tabela({ titulo, itens, aoClicar }: { titulo: string; itens: Grupo[]; aoClicar?: (n: string) => void }) {
-  const max = itens[0]?.empenhado || 1;
+function Tabela({ titulo, itens, aoClicar, fixavel }: { titulo: string; itens: Grupo[]; aoClicar?: (n: string) => void; fixavel?: string }) {
+  const [todos, setTodos] = useState(false);
+  const [fixos, setFixos] = useState<string[]>([]);
+  useEffect(() => { if (fixavel) try { setFixos(JSON.parse(localStorage.getItem(fixavel) ?? "[]")); } catch { /* ignora */ } }, [fixavel]);
+  const alternar = (n: string) => setFixos((f) => { const nf = f.includes(n) ? f.filter((x) => x !== n) : [...f, n]; if (fixavel) localStorage.setItem(fixavel, JSON.stringify(nf)); return nf; });
+  const max = Math.max(1, ...itens.map((i) => i.empenhado));
+  const ordenados = [...itens.filter((i) => fixos.includes(i.nome)), ...itens.filter((i) => !fixos.includes(i.nome))];
+  const limite = Math.max(8, itens.filter((i) => fixos.includes(i.nome)).length);
+  const visiveis = todos ? ordenados : ordenados.slice(0, limite);
   return (
     <section className="border border-border p-4">
       <h2 className="font-display text-xl font-bold">{titulo}</h2>
       <ul className="mt-3 space-y-3">
-        {itens.map((i) => (
+        {visiveis.map((i) => {
+          const fixo = fixos.includes(i.nome);
+          return (
           <li key={i.nome} className="text-sm">
-            <div className="flex justify-between gap-3">
-              {aoClicar ? <button className="truncate text-left text-primary hover:underline" onClick={() => aoClicar(i.nome)}>{i.nome}</button> : <span className="truncate">{i.nome}</span>}
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex min-w-0 items-center gap-1.5">
+                {fixavel && <button type="button" onClick={() => alternar(i.nome)} aria-pressed={fixo} aria-label={fixo ? `Desafixar ${i.nome}` : `Fixar ${i.nome} no topo`} title={fixo ? "Desafixar" : "Fixar no topo"} className={fixo ? "shrink-0 text-primary" : "shrink-0 text-muted-foreground hover:text-foreground"}>{fixo ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}</button>}
+                {aoClicar ? <button className="truncate text-left text-primary hover:underline" onClick={() => aoClicar(i.nome)}>{i.nome}</button> : <span className="truncate">{i.nome}</span>}
+              </span>
               <span className="shrink-0 font-medium">{brl(i.empenhado)}</span>
             </div>
             <div className="mt-1 h-1.5 bg-secondary"><div className="h-full bg-primary" style={{ width: `${(i.empenhado / max) * 100}%` }} /></div>
             <p className="mt-0.5 text-xs text-muted-foreground">{i.qtd} emendas · pago {brl(i.pago)}</p>
           </li>
-        ))}
+        ); })}
         {itens.length === 0 && <li className="text-sm text-muted-foreground">Nenhuma emenda com esses filtros.</li>}
       </ul>
+      {ordenados.length > limite && <button type="button" onClick={() => setTodos((t) => !t)} className="mt-3 text-sm font-medium text-primary hover:underline">{todos ? "Mostrar menos" : `Mostrar mais (${ordenados.length - limite})`}</button>}
     </section>
   );
 }
@@ -76,7 +90,7 @@ function Pagina() {
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Tabela titulo="Quem mais destinou" itens={data.autores} aoClicar={(n) => { setAut(n); ir({ autor: n }); }} />
         <Tabela titulo="Municípios que mais receberam" itens={data.municipios} aoClicar={(n) => { setMun(n); ir({ municipio: n }); }} />
-        <Tabela titulo="Por área" itens={data.areas} />
+        <Tabela titulo="Por área" itens={data.areas} fixavel="emendas-areas-fixas" />
         <Tabela titulo="Por tipo de emenda" itens={data.tipos} />
       </div>
       <Fontes fontes={data.fontes} />
