@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
+import { TamanhoFonte } from "./TamanhoFonte";
 
 function Links({ aoNavegar }: { aoNavegar?: () => void }) {
   return (
@@ -22,6 +23,7 @@ export function Header() {
   return (
     <header className="border-b-4 border-double border-foreground">
       <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-5">
+        <div className="mb-3 flex justify-end"><TamanhoFonte /></div>
         <div className="flex items-center justify-between gap-4 md:items-end">
           <Link to="/" onClick={() => setAberto(false)} className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Plenário Aberto</Link>
           <nav aria-label="Navegação principal" className="hidden gap-5 text-sm font-medium uppercase tracking-wider md:flex [&_a]:inline-flex [&_a]:min-h-10 [&_a]:items-center">

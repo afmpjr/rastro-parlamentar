@@ -193,6 +193,24 @@ export type Database = {
         }
         Relationships: []
       }
+      preferencia_visual: {
+        Row: {
+          atualizado_em: string
+          modo: string
+          visitante: string
+        }
+        Insert: {
+          atualizado_em?: string
+          modo: string
+          visitante: string
+        }
+        Update: {
+          atualizado_em?: string
+          modo?: string
+          visitante?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

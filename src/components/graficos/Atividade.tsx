@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { CartaoFrequencia } from "./CartaoFrequencia";
+import { modoPadrao, registrarModo, type ModoAtividade } from "@/lib/preferencia.functions";
 import { Activity, X, ExternalLink, Filter } from "lucide-react";
 import { Selo } from "@/components/Fontes";
 import { useDica } from "@/components/Dica";
@@ -14,7 +16,7 @@ const cor = ["var(--secondary)", "color-mix(in oklch, var(--primary) 30%, var(--
 const corNaoCompareceu = ["var(--secondary)", "color-mix(in oklch, var(--destructive) 45%, var(--secondary))", "color-mix(in oklch, var(--destructive) 65%, var(--secondary))", "color-mix(in oklch, var(--destructive) 85%, var(--secondary))", "var(--destructive)"];
 
 /** Grade estilo GitHub: uma célula por dia; clique mostra os registros do dia. */
-export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false, embutido = false, resumo = false, periodoInicial = 12 }: { itens: ItemAtividade[]; titulo: string; legenda: string; filtroNatureza?: boolean; embutido?: boolean; resumo?: boolean; periodoInicial?: number }) {
+export function MapaCalor({ itens, titulo, legenda, filtroNatureza = false, embutido = false, resumo = false, periodoInicial = 12 }: { itens: ItemAtividade[]; titulo: string; legenda: string; filtroNatureza?: boolean; embutido?: boolean; resumo?: boolean; periodoInicial?: number }) {
   const { ref, mostrar, esconder, dica } = useDica();
   const [meses, setMeses] = useState(periodoInicial);
   const [tipos, setTipos] = useState<string[]>([]);
@@ -122,5 +124,36 @@ export function GradeAtividade({ itens, titulo, legenda, filtroNatureza = false,
         </div>
       )}
     </section>
+  );
+}
+
+type PropsGrade = Parameters<typeof MapaCalor>[0];
+const CHAVE_MODO = "modo-atividade";
+const CHAVE_VISITANTE = "visitante-anonimo";
+
+/** Alterna entre Cartão Mensal e Mapa de Calor; o padrão é o modo mais escolhido pelos visitantes. */
+export function GradeAtividade(props: PropsGrade) {
+  const [modo, setModo] = useState<ModoAtividade>("cartao");
+  useEffect(() => {
+    const salvo = localStorage.getItem(CHAVE_MODO);
+    if (salvo === "cartao" || salvo === "mapa") { setModo(salvo); return; }
+    modoPadrao().then((r) => setModo(r.modo)).catch(() => {});
+  }, []);
+  const escolher = (m: ModoAtividade) => {
+    setModo(m);
+    localStorage.setItem(CHAVE_MODO, m);
+    let v = localStorage.getItem(CHAVE_VISITANTE);
+    if (!v) { v = crypto.randomUUID(); localStorage.setItem(CHAVE_VISITANTE, v); }
+    registrarModo({ data: { visitante: v, modo: m } }).catch(() => {});
+  };
+  const b = (on: boolean) => `min-h-11 rounded-sm border-2 px-4 text-sm font-semibold ${on ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"}`;
+  return (
+    <div className={props.embutido ? "min-w-0" : "mt-12"}>
+      <div role="group" aria-label="Forma de ver a atividade" className="mb-3 flex flex-wrap gap-2">
+        <button type="button" aria-pressed={modo === "cartao"} className={b(modo === "cartao")} onClick={() => escolher("cartao")}>Cartão mensal</button>
+        <button type="button" aria-pressed={modo === "mapa"} className={b(modo === "mapa")} onClick={() => escolher("mapa")}>Mapa de calor</button>
+      </div>
+      {modo === "cartao" ? <CartaoFrequencia itens={props.itens} titulo={props.titulo} legenda={props.legenda} /> : <MapaCalor {...props} embutido />}
+    </div>
   );
 }

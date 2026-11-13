@@ -29,6 +29,13 @@
       "when": 1794518812543,
       "tag": "0003_resumo_emendas",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794570635000,
+      "tag": "0004_preferencia_visual",
+      "breakpoints": true
     }
   ]
 }
