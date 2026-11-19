@@ -1,3 +1,4 @@
+import { paginaDe } from "@/lib/paginas";
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { CheckCircle2, CircleAlert, LoaderCircle } from "lucide-react";
@@ -32,7 +33,7 @@ function Coletas() {
             {c.mensagem && <p className="mt-1 text-sm text-destructive">{c.mensagem}</p>}
             {c.hash_sha256 && <p className="mt-1 break-all font-mono text-xs text-muted-foreground">SHA-256: {c.hash_sha256}</p>}
           </div>
-          <a href={c.url.split(" | ")[0]} target="_blank" rel="noreferrer" className="link-evidence text-sm">Abrir fonte oficial</a>
+          <a href={paginaDe(c.url.split(" | ")[0] ?? c.url) ?? c.url.split(" | ")[0]} target="_blank" rel="noreferrer" className="link-evidence text-sm">Abrir fonte oficial</a>
         </div>
       </li>)}
     </ol>}

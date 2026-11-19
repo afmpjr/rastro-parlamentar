@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ExternalLink, Info } from "lucide-react";
 import type { Fonte } from "@/lib/fontes.functions";
+import { ehArquivo, paginaDe } from "@/lib/paginas";
 
 export function Fontes({ fontes }: { fontes: Fonte[] }) {
   return (
@@ -10,7 +11,12 @@ export function Fontes({ fontes }: { fontes: Fonte[] }) {
         {fontes.map((f) => (
           <li key={f.url} className="flex flex-wrap gap-x-2">
             <span className="font-medium">{f.orgao}</span>
-            <a className="link-evidence break-all" href={f.url} target="_blank" rel="noreferrer">{f.url}</a>
+            {paginaDe(f.url) ? <>
+              <a className="link-evidence inline-flex items-center gap-1" href={paginaDe(f.url)!} target="_blank" rel="noreferrer">Ver na página oficial<ExternalLink className="h-3 w-3" aria-hidden /></a>
+              <a className="text-muted-foreground underline" href={f.url} target="_blank" rel="noreferrer">baixar arquivo original</a>
+            </> : ehArquivo(f.url)
+              ? <a className="link-evidence" href={f.url} target="_blank" rel="noreferrer">Baixar arquivo original (para especialistas)</a>
+              : <a className="link-evidence break-all" href={f.url} target="_blank" rel="noreferrer">{f.url}</a>}
             <span className="text-muted-foreground">coletado {new Date(f.coletadoEm).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
           </li>
         ))}
@@ -23,10 +29,12 @@ const EXPLICA_PADRAO = "Soma, contagem ou percentual feito por nós a partir dos
 
 /** Selo de procedência. "Dado oficial" abre a fonte; "Cálculo da plataforma" explica como o número foi obtido. */
 export function Selo({ tipo, url, explica }: { tipo: "oficial" | "calculo"; url?: string | undefined; explica?: string | undefined }) {
-  if (tipo === "oficial")
+  if (tipo === "oficial") {
+    if (url) url = paginaDe(url) ?? url;
     return url
       ? <a href={url} target="_blank" rel="noreferrer" className="selo-oficial inline-flex items-center gap-1 hover:underline">Dado oficial<ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only"> (abre em nova aba)</span></a>
       : <span className="selo-oficial">Dado oficial</span>;
+  }
   return <SeloCalculo explica={explica ?? EXPLICA_PADRAO} />;
 }
 
