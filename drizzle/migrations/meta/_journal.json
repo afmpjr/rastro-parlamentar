@@ -36,6 +36,13 @@
       "when": 1794570635000,
       "tag": "0004_preferencia_visual",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795395114876,
+      "tag": "0005_resumo_emendas_todos_anos",
+      "breakpoints": true
     }
   ]
 }

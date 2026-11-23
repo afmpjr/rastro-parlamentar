@@ -75,7 +75,7 @@ function Pagina() {
       <h1 className="font-display text-4xl font-bold">Emendas parlamentares</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">Deputados e senadores indicam parte do orçamento federal para estados e municípios. Busque sua cidade ou um parlamentar e veja quanto foi reservado (empenhado) e quanto já foi pago.</p>
       <form onSubmit={enviar} className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-[8rem_1fr_1fr_1fr_auto]">
-        <Escolha rotulo="Ano" value={String(data.ano)} onChange={(v) => ir({ ano: Number(v) })} opcoes={data.anos.map((a) => ({ v: String(a), l: String(a) }))} />
+        <Escolha rotulo="Ano" value={String(data.ano)} onChange={(v) => ir({ ano: Number(v) })} opcoes={[{ v: "-1", l: "Todos os anos" }, ...data.anos.map((a) => ({ v: String(a), l: String(a) }))]} />
         <Escolha rotulo="Estado" value={f.uf} onChange={(v) => ir({ uf: v })} opcoes={[{ v: "", l: "Todos os estados" }, ...data.ufs.map((u) => ({ v: u, l: u }))]} />
         <input aria-label="Município" placeholder="Município" value={mun} onChange={(e) => setMun(e.target.value)} className="border border-input bg-card px-3 py-2" />
         <input aria-label="Parlamentar" placeholder="Parlamentar ou bancada" value={aut} onChange={(e) => setAut(e.target.value)} className="border border-input bg-card px-3 py-2" />
@@ -86,6 +86,19 @@ function Pagina() {
           <div key={r} className="border border-border p-4"><p className="text-sm text-muted-foreground">{r}</p><p className="font-display text-3xl font-bold">{v}</p></div>
         ))}
       </div>
+      {data.qtd === 0 && f.municipio && (
+        <div className="mt-4 border-l-4 border-primary bg-card p-5" role="status">
+          <p className="text-lg font-semibold">{f.municipio} não recebeu emendas diretas {data.ano === -1 ? "no período disponível" : `no orçamento de ${data.ano}`}.</p>
+          <p className="mt-1 text-muted-foreground">Cada parlamentar escolhe, a cada ano, para quais cidades manda a sua cota. Verbas enviadas ao governo do estado não aparecem aqui.</p>
+          {data.anosCidade.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-medium">Anos em que a cidade recebeu:</span>
+              {data.anosCidade.map((a) => <button key={a.ano} type="button" onClick={() => ir({ ano: a.ano })} className="border border-primary px-3 py-1 text-sm font-medium text-primary hover:bg-secondary">{a.ano} · {brl(a.empenhado)}</button>)}
+              <button type="button" onClick={() => ir({ ano: -1 })} className="bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">Ver todos os anos</button>
+            </div>
+          )}
+        </div>
+      )}
       <p className="mt-2 flex flex-wrap gap-2 text-xs"><Selo tipo="oficial" url={data.fontes[0]?.url} /><Selo tipo="calculo" explica="Somamos, por nós, os valores de cada emenda publicada pelo Portal da Transparência para o ano e filtros escolhidos. Empenhado é o valor reservado; pago é o que já saiu do caixa." /></p>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Tabela titulo="Quem mais destinou" itens={data.autores} aoClicar={(n) => { setAut(n); ir({ autor: n }); }} />

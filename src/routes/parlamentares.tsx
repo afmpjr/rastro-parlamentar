@@ -37,7 +37,11 @@ function Lista() {
     (!casa || p.casa === casa) && (!partido || p.partido === partido) && (!uf || p.uf === uf) &&
     (ufs ? ufs.includes(p.uf) : !texto || norm(`${p.nome} ${p.partido} ${p.uf}`).includes(norm(texto))));
   const porNome = filtrar(q);
-  const cidades = q.trim().length >= 3 && porNome.length === 0 ? (mun.data?.lista ?? []).filter((m) => norm(m.nome) === norm(q.trim())) : [];
+  const nq = norm(q.trim());
+  const candidatas = nq.length >= 3 && porNome.length === 0 ? (mun.data?.lista ?? []).filter((m) => norm(m.nome).startsWith(nq)) : [];
+  const exatas = candidatas.filter((m) => norm(m.nome) === nq);
+  const cidades = exatas.length ? exatas : candidatas.length === 1 ? candidatas : [];
+  const sugestoes = candidatas.filter((m) => !cidades.includes(m)).slice(0, 10);
   const cidadeUfs = [...new Set(cidades.map((c) => c.uf))];
   const f = cidades.length ? filtrar("", cidadeUfs) : porNome;
   return (
@@ -56,7 +60,15 @@ function Lista() {
           <Link to="/emendas" search={{ ano: 0, uf: "", municipio: cidades[0]!.nome, autor: "" }} className="mt-3 inline-block font-semibold text-primary underline">Ver o dinheiro de emendas enviado para {cidades[0]!.nome} →</Link>
         </div>
       )}
-      {q.trim().length >= 3 && f.length === 0 && (
+      {sugestoes.length > 0 && (
+        <div className="mt-6 bg-card p-5" role="status">
+          <p className="text-lg font-semibold">{cidades.length ? "Ou você procura outra cidade?" : "Você está procurando por qual cidade?"}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {sugestoes.map((c) => <button key={c.nome + c.uf} type="button" onClick={() => setQ(c.nome)} className="border border-primary px-3 py-2 font-medium text-primary hover:bg-secondary">{c.nome} ({NOMES_UF[c.uf] ?? c.uf})</button>)}
+          </div>
+        </div>
+      )}
+      {q.trim().length >= 3 && f.length === 0 && sugestoes.length === 0 && (
         <p className="mt-6 max-w-3xl bg-card p-5">Nenhum parlamentar ou cidade encontrado para “{q}”. Tente o nome de um deputado, de um partido ou da sua cidade, escrito por extenso.</p>
       )}
       <p className="label-caps mt-4">{f.length} resultados</p>

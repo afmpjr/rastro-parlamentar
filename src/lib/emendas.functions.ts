@@ -21,7 +21,8 @@ export const buscarEmendas = createServerFn({ method: "GET" })
     // Todas as áreas (o resumo traz só as maiores); somadas aqui com os mesmos filtros.
     const linhas: { funcao: string; municipio: string; autor: string; empenhado: number; pago: number; qtd: number }[] = [];
     for (let de = 0; ; de += 1000) {
-      let qy = db.from("emendas").select("funcao,municipio,autor,empenhado,pago,qtd").eq("ano", res.ano).range(de, de + 999);
+      let qy = db.from("emendas").select("funcao,municipio,autor,empenhado,pago,qtd").range(de, de + 999);
+      if (res.ano !== -1) qy = qy.eq("ano", res.ano);
       if (data.uf) qy = qy.eq("uf", data.uf);
       const { data: pg, error: e2 } = await qy;
       if (e2) { console.error("Falha ao ler áreas", e2); break; }
@@ -37,10 +38,18 @@ export const buscarEmendas = createServerFn({ method: "GET" })
       v.empenhado += Number(l.empenhado); v.pago += Number(l.pago); v.qtd += Number(l.qtd); mapa.set(nome, v);
     }
     const areas = mapa.size ? [...mapa.values()].sort((a, b) => b.empenhado - a.empenhado) : g("areas");
+    // Anos em que a cidade recebeu algo (para orientar quando o ano escolhido vem zerado).
+    let anosCidade: { ano: number; empenhado: number }[] = [];
+    if (pm && Number(res.qtd) === 0) {
+      const { data: ac } = await db.from("emendas").select("ano,municipio,empenhado").ilike("municipio", `%${data.municipio.trim()}%`).limit(5000);
+      const m = new Map<number, number>();
+      for (const l of ac ?? []) if (norm(l.municipio).includes(pm)) m.set(l.ano, (m.get(l.ano) ?? 0) + Number(l.empenhado));
+      anosCidade = [...m].map(([ano, empenhado]) => ({ ano, empenhado })).sort((a, b) => b.ano - a.ano);
+    }
     const fontes: Fonte[] = [{ orgao: "Portal da Transparência (CGU) · emendas parlamentares", url: URL_EMENDAS, coletadoEm: coleta?.concluido_em ?? new Date().toISOString() }];
     return {
       ano: res.ano, anos: res.anos ?? [], ufs: res.ufs ?? [], fontes, qtd: Number(res.qtd),
       empenhado: Number(res.empenhado), pago: Number(res.pago),
-      autores: g("autores"), municipios: g("municipios"), areas, tipos: g("tipos"),
+      autores: g("autores"), municipios: g("municipios"), areas, tipos: g("tipos"), anosCidade,
     };
   });
