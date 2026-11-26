@@ -31,3 +31,4 @@ use the editor.
 
 - Parliamentary data is fetched live from official Câmara/Senado open-data APIs via server functions in src/lib/fontes.functions.ts, and every response carries its source URLs + collection time; why: provenance is a core product rule.
 - Activity view default (card vs heatmap) comes from anonymous per-visitor votes in public.preferencia_visual, read/written only via server functions in src/lib/preferencia.functions.ts; why: data tables are server-only.
+- Amendment execution calculations live in a browser-safe pure module, and civic guidance uses aggregate filters without inventing record identifiers or beneficiaries; why: aggregate amounts cannot prove destination, completion, or reasons for nonpayment.

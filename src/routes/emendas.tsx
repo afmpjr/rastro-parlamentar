@@ -5,7 +5,10 @@ import { Pin, PinOff } from "lucide-react";
 import { buscarEmendas, type FiltroEmendas } from "@/lib/emendas.functions";
 import { Fontes, Selo } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
-import { brl } from "@/lib/ufs";
+import { brl, NOMES_UF } from "@/lib/ufs";
+import { Button } from "@/components/ui/button";
+import { BarraPagamento, ResumoDinheiro, GuiaFiscalizacao } from "@/components/GuiaFiscalizacao";
+import { AutorEmendas } from "@/components/AutorEmendas";
 
 const q = (f: FiltroEmendas) => queryOptions({ queryKey: ["emendas", f], queryFn: () => buscarEmendas({ data: f }), staleTime: 3600_000 });
 
@@ -37,7 +40,7 @@ function Tabela({ titulo, itens, aoClicar, fixavel }: { titulo: string; itens: G
   const limite = Math.max(8, itens.filter((i) => fixos.includes(i.nome)).length);
   const visiveis = todos ? ordenados : ordenados.slice(0, limite);
   return (
-    <section className="border border-border p-4">
+    <section className="border-t border-border py-4">
       <h2 className="font-display text-xl font-bold">{titulo}</h2>
       <ul className="mt-3 space-y-3">
         {visiveis.map((i) => {
@@ -46,18 +49,19 @@ function Tabela({ titulo, itens, aoClicar, fixavel }: { titulo: string; itens: G
           <li key={i.nome} className="text-sm">
             <div className="flex items-center justify-between gap-3">
               <span className="flex min-w-0 items-center gap-1.5">
-                {fixavel && <button type="button" onClick={() => alternar(i.nome)} aria-pressed={fixo} aria-label={fixo ? `Desafixar ${i.nome}` : `Fixar ${i.nome} no topo`} title={fixo ? "Desafixar" : "Fixar no topo"} className={fixo ? "shrink-0 text-primary" : "shrink-0 text-muted-foreground hover:text-foreground"}>{fixo ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}</button>}
-                {aoClicar ? <button className="truncate text-left text-primary hover:underline" onClick={() => aoClicar(i.nome)}>{i.nome}</button> : <span className="truncate">{i.nome}</span>}
+                {fixavel && <Button variant="ghost" size="icon" type="button" onClick={() => alternar(i.nome)} aria-pressed={fixo} aria-label={fixo ? `Desafixar ${i.nome}` : `Fixar ${i.nome} no topo`} title={fixo ? "Desafixar" : "Fixar no topo"} className={fixo ? "shrink-0 text-primary" : "shrink-0 text-muted-foreground hover:text-foreground"}>{fixo ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}</Button>}
+                {aoClicar ? <Button variant="link" className="h-auto whitespace-normal break-words p-0 text-left" onClick={() => aoClicar(i.nome)}>{i.nome}</Button> : <span className="break-words">{i.nome}</span>}
               </span>
               <span className="shrink-0 font-medium">{brl(i.empenhado)}</span>
             </div>
             <div className="mt-1 h-1.5 bg-secondary"><div className="h-full bg-primary" style={{ width: `${(i.empenhado / max) * 100}%` }} /></div>
-            <p className="mt-0.5 text-xs text-muted-foreground">{i.qtd} emendas · pago {brl(i.pago)}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{i.qtd} emendas · reservado {brl(i.empenhado)} · pago {brl(i.pago)}</p>
+            <BarraPagamento empenhado={i.empenhado} pago={i.pago} />
           </li>
         ); })}
         {itens.length === 0 && <li className="text-sm text-muted-foreground">Nenhuma emenda com esses filtros.</li>}
       </ul>
-      {ordenados.length > limite && <button type="button" onClick={() => setTodos((t) => !t)} className="mt-3 text-sm font-medium text-primary hover:underline">{todos ? "Mostrar menos" : `Mostrar mais (${ordenados.length - limite})`}</button>}
+      {ordenados.length > limite && <Button variant="link" type="button" onClick={() => setTodos((t) => !t)} className="mt-3 px-0">{todos ? "Mostrar menos" : `Mostrar mais (${ordenados.length - limite})`}</Button>}
     </section>
   );
 }
@@ -72,24 +76,21 @@ function Pagina() {
   return (
     <div>
       <p className="label-caps">Para onde foi o dinheiro</p>
-      <h1 className="font-display text-4xl font-bold">Emendas parlamentares</h1>
+      <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">{f.municipio ? `Emendas para ${f.municipio}${f.uf ? ` (${f.uf})` : ""}` : "Emendas parlamentares"}</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">Deputados e senadores indicam parte do orçamento federal para estados e municípios. Busque sua cidade ou um parlamentar e veja quanto foi reservado (empenhado) e quanto já foi pago.</p>
       <form onSubmit={enviar} className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-[8rem_1fr_1fr_1fr_auto]">
         <Escolha rotulo="Ano" value={String(data.ano)} onChange={(v) => ir({ ano: Number(v) })} opcoes={[{ v: "-1", l: "Todos os anos" }, ...data.anos.map((a) => ({ v: String(a), l: String(a) }))]} />
-        <Escolha rotulo="Estado" value={f.uf} onChange={(v) => ir({ uf: v })} opcoes={[{ v: "", l: "Todos os estados" }, ...data.ufs.map((u) => ({ v: u, l: u }))]} />
+        <Escolha rotulo="Estado" value={f.uf} onChange={(v) => ir({ uf: v })} opcoes={[{ v: "", l: "Todos os estados" }, ...data.ufs.map((u) => ({ v: u, l: `${NOMES_UF[u] ?? u} (${u})` }))]} />
         <input aria-label="Município" placeholder="Município" value={mun} onChange={(e) => setMun(e.target.value)} className="border border-input bg-card px-3 py-2" />
         <input aria-label="Parlamentar" placeholder="Parlamentar ou bancada" value={aut} onChange={(e) => setAut(e.target.value)} className="border border-input bg-card px-3 py-2" />
-        <button className="min-h-10 bg-foreground px-4 text-sm font-medium text-background">Buscar</button>
+        <Button type="submit" className="min-h-10">Buscar</Button>
       </form>
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {[["Emendas", data.qtd.toLocaleString("pt-BR")], ["Empenhado", brl(data.empenhado)], ["Pago", brl(data.pago)]].map(([r, v]) => (
-          <div key={r} className="border border-border p-4"><p className="text-sm text-muted-foreground">{r}</p><p className="font-display text-3xl font-bold">{v}</p></div>
-        ))}
-      </div>
+      <ResumoDinheiro empenhado={data.empenhado} pago={data.pago} qtd={data.qtd} />
+      <AutorEmendas autor={data.autores.length === 1 ? data.autores[0]?.nome ?? f.autor : f.autor} uf={f.uf} />
       {data.qtd === 0 && f.municipio && (
         <div className="mt-4 border-l-4 border-primary bg-card p-5" role="status">
-          <p className="text-lg font-semibold">{f.municipio} não recebeu emendas diretas {data.ano === -1 ? "no período disponível" : `no orçamento de ${data.ano}`}.</p>
-          <p className="mt-1 text-muted-foreground">Cada parlamentar escolhe, a cada ano, para quais cidades manda a sua cota. Verbas enviadas ao governo do estado não aparecem aqui.</p>
+          <p className="text-lg font-semibold">Não encontramos registros para {f.municipio} {data.ano === -1 ? "no período disponível" : `no orçamento de ${data.ano}`} com estes filtros.</p>
+          <p className="mt-1 text-muted-foreground">Isso não comprova ausência de repasses. Confira a autoria, o ano e a cobertura da base; recursos destinados ao estado podem beneficiar a cidade sem aparecer neste recorte.</p>
           {data.anosCidade.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="font-medium">Anos em que a cidade recebeu:</span>
@@ -106,6 +107,7 @@ function Pagina() {
         <Tabela titulo="Por área" itens={data.areas} fixavel="emendas-areas-fixas" />
         <Tabela titulo="Por tipo de emenda" itens={data.tipos} />
       </div>
+      <GuiaFiscalizacao municipio={f.municipio} uf={f.uf} autor={f.autor} ano={data.ano} empenhado={data.empenhado} pago={data.pago} />
       <Fontes fontes={data.fontes} />
     </div>
   );

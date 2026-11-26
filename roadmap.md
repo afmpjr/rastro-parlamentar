@@ -32,6 +32,7 @@ Métrica: pessoas que abrem o perfil de um parlamentar a cada semana.
 **Critério de saída:** despesas dos 594 parlamentares consultáveis sem baixar arquivos anuais a cada visita, com histórico e procedência preservados.
 
 ## Fase 2 — explorar o dinheiro público
+- [x] Emendas: indicadores de pagamento, limites dos dados, identificação segura do autor e guia de acompanhamento com pedido LAI; verificado com Nobres em computador e celular.
 - [ ] Ranking de parlamentares por gasto, com paginação e filtros por casa, partido, estado, período, categoria e faixa de valor na URL.
 - [ ] Comparação entre dois períodos: total, diferença em reais e percentual, e categorias que mais mudaram.
 - [ ] Página por fornecedor: CNPJ/CPF, total recebido, parlamentares pagantes, categorias e evolução temporal.
