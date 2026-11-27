@@ -7,13 +7,12 @@ function Links({ aoNavegar }: { aoNavegar?: () => void }) {
   return (
     <>
       <Link to="/parlamentares" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Parlamentares</Link>
-      <Link to="/proposicoes" onClick={aoNavegar} search={{ casa: "camara", q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", grupo: "", pagina: 1 }} activeProps={{ className: "text-primary" }}>Projetos</Link>
       <Link to="/emendas" onClick={aoNavegar} search={{ ano: 0, uf: "", municipio: "", autor: "" }} activeProps={{ className: "text-primary" }}>Emendas</Link>
+      <Link to="/proposicoes" onClick={aoNavegar} search={{ casa: "camara", q: "", tipo: "", numero: "", ano: "", autor: "", tema: "", tramitando: "", grupo: "", pagina: 1 }} activeProps={{ className: "text-primary" }}>Projetos</Link>
       <Link to="/governadores" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Governadores</Link>
+      <span aria-hidden className="hidden w-px self-stretch bg-border md:block" />
       <Link to="/comparar" onClick={aoNavegar} search={{ casa: "camara", ano: new Date().getFullYear(), ids: "" }} activeProps={{ className: "text-primary" }}>Comparar</Link>
-      <Link to="/compatibilidade" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Teste</Link>
-      <Link to="/coletas" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Atualizações</Link>
-      <Link to="/metodologia" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Metodologia</Link>
+      <Link to="/compatibilidade" onClick={aoNavegar} activeProps={{ className: "text-primary" }}>Afinidade</Link>
     </>
   );
 }

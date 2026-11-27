@@ -8,6 +8,7 @@ import { Escolha } from "@/components/Escolha";
 import { brl, NOMES_UF } from "@/lib/ufs";
 import { Button } from "@/components/ui/button";
 import { BarraPagamento, ResumoDinheiro, GuiaFiscalizacao } from "@/components/GuiaFiscalizacao";
+import { FiltrosAtivos } from "@/components/FiltrosAtivos";
 import { AutorEmendas } from "@/components/AutorEmendas";
 
 const q = (f: FiltroEmendas) => queryOptions({ queryKey: ["emendas", f], queryFn: () => buscarEmendas({ data: f }), staleTime: 3600_000 });
@@ -72,6 +73,13 @@ function Pagina() {
   const { data } = useSuspenseQuery(q(f));
   const [mun, setMun] = useState(f.municipio), [aut, setAut] = useState(f.autor);
   const ir = (p: Partial<FiltroEmendas>) => nav({ search: (s) => ({ ...s, ...p }) });
+  const chips = [
+    ...(f.ano === -1 ? [{ rotulo: "Todos os anos", aoRemover: () => ir({ ano: 0 }) }] : f.ano ? [{ rotulo: `Ano: ${f.ano}`, aoRemover: () => ir({ ano: 0 }) }] : []),
+    ...(f.uf ? [{ rotulo: NOMES_UF[f.uf] ?? f.uf, aoRemover: () => ir({ uf: "" }) }] : []),
+    ...(f.municipio ? [{ rotulo: `Cidade: ${f.municipio}`, aoRemover: () => { setMun(""); ir({ municipio: "" }); } }] : []),
+    ...(f.autor ? [{ rotulo: `Autor: ${f.autor}`, aoRemover: () => { setAut(""); ir({ autor: "" }); } }] : []),
+  ];
+  const limpar = () => { setMun(""); setAut(""); nav({ search: { ano: 0, uf: "", municipio: "", autor: "" } }); };
   const enviar = (e: FormEvent) => { e.preventDefault(); ir({ municipio: mun, autor: aut }); };
   return (
     <div>
@@ -80,11 +88,12 @@ function Pagina() {
       <p className="mt-2 max-w-2xl text-muted-foreground">Deputados e senadores indicam parte do orçamento federal para estados e municípios. Busque sua cidade ou um parlamentar e veja quanto foi reservado (empenhado) e quanto já foi pago.</p>
       <form onSubmit={enviar} className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-[8rem_1fr_1fr_1fr_auto]">
         <Escolha rotulo="Ano" value={String(data.ano)} onChange={(v) => ir({ ano: Number(v) })} opcoes={[{ v: "-1", l: "Todos os anos" }, ...data.anos.map((a) => ({ v: String(a), l: String(a) }))]} />
-        <Escolha rotulo="Estado" value={f.uf} onChange={(v) => ir({ uf: v })} opcoes={[{ v: "", l: "Todos os estados" }, ...data.ufs.map((u) => ({ v: u, l: `${NOMES_UF[u] ?? u} (${u})` }))]} />
-        <input aria-label="Município" placeholder="Município" value={mun} onChange={(e) => setMun(e.target.value)} className="border border-input bg-card px-3 py-2" />
-        <input aria-label="Parlamentar" placeholder="Parlamentar ou bancada" value={aut} onChange={(e) => setAut(e.target.value)} className="border border-input bg-card px-3 py-2" />
+        <Escolha className={f.uf ? "border-primary ring-1 ring-primary" : ""} rotulo="Estado" value={f.uf} onChange={(v) => ir({ uf: v })} opcoes={[{ v: "", l: "Todos os estados" }, ...data.ufs.map((u) => ({ v: u, l: `${NOMES_UF[u] ?? u} (${u})` }))]} />
+        <input aria-label="Município" placeholder="Município" value={mun} onChange={(e) => setMun(e.target.value)} className={`border bg-card px-3 py-2 ${f.municipio ? "border-primary ring-1 ring-primary" : "border-input"}`} />
+        <input aria-label="Parlamentar" placeholder="Parlamentar ou bancada" value={aut} onChange={(e) => setAut(e.target.value)} className={`border bg-card px-3 py-2 ${f.autor ? "border-primary ring-1 ring-primary" : "border-input"}`} />
         <Button type="submit" className="min-h-10">Buscar</Button>
       </form>
+      <FiltrosAtivos chips={chips} aoLimpar={limpar} />
       <ResumoDinheiro empenhado={data.empenhado} pago={data.pago} qtd={data.qtd} />
       <AutorEmendas autor={data.autores.length === 1 ? data.autores[0]?.nome ?? f.autor : f.autor} uf={f.uf} />
       {data.qtd === 0 && f.municipio && (

@@ -128,6 +128,13 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10"><Outlet /></main>
+      <footer className="mt-10 border-t-4 border-double border-foreground">
+        <nav aria-label="Sobre os dados" className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-6 text-sm sm:px-6">
+          <span className="label-caps">Sobre os dados</span>
+          <Link to="/metodologia" className="underline" activeProps={{ className: "text-primary" }}>Metodologia</Link>
+          <Link to="/coletas" className="underline" activeProps={{ className: "text-primary" }}>Atualizações e fontes</Link>
+        </nav>
+      </footer>
     </QueryClientProvider>
   );
 }

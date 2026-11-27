@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { parlamentaresQuery } from "@/lib/parlamentares-query";
 import { Fontes } from "@/components/Fontes";
 import { Escolha } from "@/components/Escolha";
+import { FiltrosAtivos } from "@/components/FiltrosAtivos";
 
 export const Route = createFileRoute("/parlamentares")({
   validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s["q"] === "string" ? { q: s["q"] } : {}),
@@ -44,15 +45,24 @@ function Lista() {
   const sugestoes = candidatas.filter((m) => !cidades.includes(m)).slice(0, 10);
   const cidadeUfs = [...new Set(cidades.map((c) => c.uf))];
   const f = cidades.length ? filtrar("", cidadeUfs) : porNome;
+  const limpar = () => { setQ(""); setCasa(""); setPartido(""); setUf(""); };
+  const chips = [
+    ...(q.trim() ? [{ rotulo: cidades.length ? `Cidade: ${cidades[0]!.nome}` : `Busca: “${q.trim()}”`, aoRemover: () => setQ("") }] : []),
+    ...(casa ? [{ rotulo: casa === "camara" ? "Câmara" : "Senado", aoRemover: () => setCasa("") }] : []),
+    ...(partido ? [{ rotulo: `Partido: ${partido}`, aoRemover: () => setPartido("") }] : []),
+    ...(uf ? [{ rotulo: NOMES_UF[uf] ?? uf, aoRemover: () => setUf("") }] : []),
+  ];
+  const ativo = "border-primary ring-1 ring-primary";
   return (
     <div>
       <h1 className="text-4xl font-bold">Parlamentares</h1>
       <div className="mt-6 flex flex-wrap gap-3">
         <input className={`${sel} min-w-64 flex-1`} placeholder="Nome, partido ou sua cidade" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" />
-        <Escolha className="w-48" rotulo="Casa" value={casa} onChange={setCasa} opcoes={[{ v: "", l: "Câmara e Senado" }, { v: "camara", l: "Câmara" }, { v: "senado", l: "Senado" }]} />
-        <Escolha className="w-48" rotulo="Partido" value={partido} onChange={setPartido} opcoes={[{ v: "", l: "Todos os partidos" }, ...partidos.map((p) => ({ v: p, l: p }))]} />
-        <Escolha className="w-40" rotulo="UF" value={uf} onChange={setUf} opcoes={[{ v: "", l: "Todas as UFs" }, ...ufs.map((p) => ({ v: p, l: p }))]} />
+        <Escolha className={`w-48 ${casa ? ativo : ""}`} rotulo="Casa" value={casa} onChange={setCasa} opcoes={[{ v: "", l: "Câmara e Senado" }, { v: "camara", l: "Câmara" }, { v: "senado", l: "Senado" }]} />
+        <Escolha className={`w-48 ${partido ? ativo : ""}`} rotulo="Partido" value={partido} onChange={setPartido} opcoes={[{ v: "", l: "Todos os partidos" }, ...partidos.map((p) => ({ v: p, l: p }))]} />
+        <Escolha className={`w-40 ${uf ? ativo : ""}`} rotulo="UF" value={uf} onChange={setUf} opcoes={[{ v: "", l: "Todas as UFs" }, ...ufs.map((p) => ({ v: p, l: p }))]} />
       </div>
+      <FiltrosAtivos chips={chips} aoLimpar={limpar} />
       {cidades.length > 0 && (
         <div className="mt-6 border-l-4 border-primary bg-card p-5" role="status">
           <p className="text-lg font-semibold">Você buscou por {cidades.map((c) => `${c.nome} (${NOMES_UF[c.uf] ?? c.uf})`).join(" ou ")}.</p>
@@ -69,9 +79,9 @@ function Lista() {
         </div>
       )}
       {q.trim().length >= 3 && f.length === 0 && sugestoes.length === 0 && (
-        <p className="mt-6 max-w-3xl bg-card p-5">Nenhum parlamentar ou cidade encontrado para “{q}”. Tente o nome de um deputado, de um partido ou da sua cidade, escrito por extenso.</p>
+        <p className="mt-6 max-w-3xl bg-card p-5">Nenhum parlamentar ou cidade encontrado para “{q}”. Tente o nome de um deputado, de um partido ou da sua cidade, escrito por extenso. <button type="button" onClick={limpar} className="font-semibold underline">Limpar filtros</button></p>
       )}
-      <p className="label-caps mt-4">{f.length} resultados</p>
+      <p className="label-caps mt-4" aria-live="polite">{f.length} {chips.length ? `de ${data.lista.length} ` : ""}resultados</p>
       <ul className="mt-4 grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
         {f.map((p) => (
           <li key={p.casa + p.id} className="bg-background">
